@@ -97,9 +97,6 @@ struct UltraGiz
 {
 	template gizmos(int numPorts, bool isSpinnable)
 	{
-		// UltraGiz only needs 1-port, 2-port and 5-port Gizmos:
-		static assert(numPorts == 1 || numPorts == 2 || numPorts == 5);
-		
 		Gizmo!(numPorts, isSpinnable)[] gizmos;
 	}
 
