@@ -11,28 +11,28 @@ import std.stdio;
 
 template isIGizmo(T)
 {
-	immutable bool isIGizmo = is(typeof(
+	immutable bool isIGizmo = __traits(compiles,
 		// This is just an anonymous function.
 		// We won't actually run it, though.
 		// We're just making sure all of this compiles for T.
 		(){  
 			T t;
-			auto dummy = T._this_implements_interface_IGizmo_;
+			static assert(T._this_implements_interface_IGizmo_);
 			int n = t.numPorts;
 			static if(T.isSpinnable)
 				int s = t.spinCount;
 			t.doStuff();
 			t.spin();
 		}
-	));
+	);
 }
 
 string declareInterface(string interfaceName, string thisType)
 {
 	return `
 		// Announce what interface this implements.
-		// A void[0] takes up no space.
-		static immutable void[0] _this_implements_interface_`~interfaceName~`_;
+		// An enum takes up no space.
+		static enum _this_implements_interface_`~interfaceName~`_ = true;
 		
 		// Verify this actually does implement the interface
 		static assert(
