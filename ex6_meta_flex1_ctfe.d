@@ -141,7 +141,7 @@ struct UltraGiz
 	}
 }
 
-void main(string[] args)
+void main()
 {
 	UltraGiz ultra;
 	ultra.run();

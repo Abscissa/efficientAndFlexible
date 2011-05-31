@@ -4,7 +4,7 @@
 
 mixin(dispatch( [1, 2, 3, 5, 10] ));
 
-// With the following:
+// With this:
 
 immutable code = dispatch( [1, 2, 3, 5, 10] );
 pragma(msg, "code:\n"~code); // Displayed at compile-time

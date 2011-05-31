@@ -7,7 +7,7 @@ struct Gizmo(int _numPorts, bool _isSpinnable)
 	static immutable numPorts    = _numPorts;
 	static immutable isSpinnable = _isSpinnable;
 	
-	// ... the rest here
+	// The rest here...
 }
 
 struct AnyGizmo

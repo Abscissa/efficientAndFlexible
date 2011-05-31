@@ -154,6 +154,7 @@ struct UltraGiz
 		// Use gizmos
 		foreach(i; 0..10_000)
 		{
+			// Think of this as an array of types:
 			alias TypeTuple!(
 				Gizmo!(1, false),
 				Gizmo!(1, true ),
