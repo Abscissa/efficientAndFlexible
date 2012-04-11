@@ -1,0 +1,333 @@
+body
+{
+	background-color: #FCE8B0;
+	color: #383019;
+	margin: 10px;
+	padding: 0;
+}
+body, th, td
+{
+	font: normal 0.9em verdana,arial,'Bitstream Vera Sans',helvetica,sans-serif;
+}
+h1, h2, h3, h4
+{
+	font-family: arial,verdana,'Bitstream Vera Sans',helvetica,sans-serif;
+	font-weight: bold;
+	color: #1F3832;
+}
+.api-head
+{
+	font-size: 1.2em;
+	font-family: arial,verdana,'Bitstream Vera Sans',helvetica,sans-serif;
+	font-weight: bold;
+	padding-top:   0px;
+	margin-bottom: 4px;
+}
+h1 { font-size: 1.6em; margin: .15em 1em 0 0 }
+h2 { font-size: 1.4em; }
+h3 { font-size: 1.2em }
+hr { border: none;  border-bottom: 1px solid #1F3832; }
+address { font-style: normal }
+img { border: none }
+tt { white-space: pre }
+
+em
+{
+	font-style: italic;
+	font-weight: bold;
+	color: #1F3832;
+}
+
+.changelog-summary
+{
+/*	font-weight: normal;*/
+	font-size: 0.9em;
+	font-style: italic;
+}
+
+.page-title
+{
+	color: #1F3832;
+	font-size: 2.1em;
+	padding-top: 0px;
+	margin-top: 0px;
+	margin-bottom: 0px;
+}
+
+.page-subtitle
+{
+	color: #1F3832;
+	font-size: 1.5em;
+	font-weight: bold;
+	padding-top: 0px;
+	margin-top: 0px;
+	margin-bottom: 10px;
+}
+
+.page-subtitle-version
+{
+	font-size: 0.6em;
+	font-weight: bold;
+}
+
+.side-panel
+{
+	vertical-align: top;
+	width: 230px;
+	border: 1px solid #1F3832;
+	background-color: #E3D19F;
+	padding: 5px;
+}
+
+.main-panel
+{
+	vertical-align: top;
+	width: 700px;
+	padding-top: 6px;
+	padding-left: 15px;
+}
+
+.list-heading
+{
+	margin-bottom: 1px;
+}
+
+table
+{
+	border-collapse: collapse;
+}
+td
+{
+	padding: 3px;
+	vertical-align: top;
+}
+.grid-table td
+{
+	border: 1px solid black;
+}
+.grid-table td>h1, .grid-table td>h2, .grid-table td>h3,
+.grid-table td>ul, .grid-table td>ol
+{
+	margin: 0px;
+	padding: 0px;
+}
+.grid-table td>ul, .grid-table td>ol
+{
+	margin-left: 15px;
+}
+
+.info-list
+{
+	margin-top: 6px;
+}
+
+.info-list h4
+{
+	margin-top:    0px;
+	margin-bottom: 1px;
+}
+
+.info-list div
+{
+	margin-top:    0px;
+	margin-bottom: 7px;
+	padding-left:  2em;
+}
+
+.api-def
+{
+	margin-top:    0px;
+	margin-bottom: 20px;
+	margin-left:   30px;
+}
+
+.api-def p
+{
+	margin-top: 0px;
+}
+
+.api-section
+{
+	font-family: arial,verdana,'Bitstream Vera Sans',helvetica,sans-serif;
+	font-size: 1.4em;
+	font-weight: bold;
+	margin-top: 0px;
+	margin-bottom: 8px;
+}
+
+.module-decl
+{
+	font-style: italic;
+	margin-bottom: 0px;
+}
+
+.footer
+{
+	font-style: italic;
+	font-size: 0.9em;
+}
+
+.note
+{
+	border: 1px black solid;
+	/*background-color: #FCF0D0;*/
+	background-color: #FCEFC9;
+	margin-left: 2em;
+	margin-right: 2em;
+	padding: 3px 6px 3px 6px;
+}
+
+ol
+{
+	list-style-type: decimal;
+}
+
+/* Link styles */
+:link
+{
+	font-weight: bold;
+	text-decoration: none;
+	color: #0030B0;
+}
+:visited
+{
+	font-weight: bold;
+	text-decoration: none;
+	color: #6000A0;
+}
+:link:hover, :visited:hover
+{
+	background-color: #E0CD96;
+}
+.side-panel :link:hover, .side-panel :visited:hover
+{
+	background-color: #BDAE84;
+}
+
+span.breadcrumb-link, span.extern-link, span.page-link
+{
+	font-weight: bold;
+	color: #1F3832;
+}
+
+span.ident
+{
+	font-weight: bold;
+	color: #1F3832;
+}
+
+span.attr
+{
+	color: #099;
+	font-weight: bold;
+	font-size: 0.9em;
+}
+
+.metaparam
+{
+	font-style: italic;
+	font-weight: normal;
+}
+
+.api-head span.ident
+{
+	font-size: 1.1em;
+	font-family: arial,verdana,'Bitstream Vera Sans',helvetica,sans-serif;
+	color: #006;
+}
+
+.api-head span.param-name
+{
+	font-size: 1.1em;
+	font-weight: normal;
+	font-style: italic;
+}
+
+span.pagemenu-link, div.pagemenu-link span
+{
+	font-weight: bold;
+	color: #1F3832;
+	background-color: #BDAE84;
+}
+
+li
+{
+	/*margin-bottom: 1px;*/
+	margin-bottom: 5px;
+}
+
+ul
+{
+	padding-left: 25px;
+	margin-top: 0px;
+	margin-left: 0px;
+	list-style-type: disc;
+	list-style-position: outside;
+}
+
+ul.pagemenu-link
+{
+	margin-bottom: 0px;
+}
+
+div.pagemenu-link
+{
+	margin: 1px 0px 0px 0px;
+	padding: 0px 0px 0px 0px;
+}
+
+.figure-title
+{
+	margin-bottom: 0px;
+	margin-left: 0.5em;
+	font-weight: bold;
+	font-style: italic;
+	font-size: 0.85em;
+}
+
+.code-highlight, .code-plain
+{
+	display: block;
+	white-space: pre;
+	font-family: monospace;
+	font-size: 1.1em;
+	border: 1px solid #1F3832;
+	background-color: #FFE58F;
+	color: #383019;
+	padding-top:    1px;
+	padding-bottom: 1px;
+	padding-left:   5px;
+	padding-right:  5px;
+	margin: 2px;
+	margin-bottom: 8px;
+}
+
+.code-user
+{
+	font-weight: bold;
+	color: #d00;
+}
+
+.code-added
+{
+	background-color: #FFEF5C;
+	
+	/* IE needs this */
+	white-space: pre;
+}
+
+.code-comment
+{
+	font-style: italic;
+	color: #070;
+}
+
+.code-inline
+{
+	white-space: pre;
+	font-family: monospace;
+	font-size: 1.1em;
+	background-color: #FFE58F;
+	color: #383019;
+	padding:    0px;
+}
