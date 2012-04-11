@@ -1,0 +1,2850 @@
+[$name|SinglePage$]
+[$title|Have Your Efficiency, and Flexibility Too$]
+[$frame|HTMLPage.tmpl$]
+
+<h1>Have Your Efficiency, and Flexibility Too</h1>
+<h3 style="margin-top: 0px; margin-bottom: 0px;">Metaprogramming Techniques For No-Compromise Code</h3>
+<h4 style="margin-top: 0px; margin-left: 1em; font-style: italic;">by Nick Sabalausky</h4>
+
+<p class="note">
+Full source code for this article is
+[$link| http://github.com/Abscissa/efficientAndFlexible | available on GitHub $],
+or can be <a href="[$urlToBase$]efficientAndFlexible.zip">downloaded here</a>.
+</p>
+
+<p style="margin-bottom: 0px;">View this article on a
+	<span class="pagemenu-link">Single Page</span>
+	or
+	<a class="pagemenu-link" href="[$urlToBase$]MultiplePages/Page1/">Multiple Pages</a>
+</p>
+
+<h4 style="margin-bottom: 0px;">Table of Contents:</h4>
+<ol style="font-weight: bold; margin-top: 0px;">
+<li style="margin-bottom: 0px;">
+	<a class="pagemenu-link" href="#part1">Have Your Efficiency, and Flexibility Too</a>
+</li>
+<li style="margin-bottom: 0px;">
+	<a class="pagemenu-link" href="#part2">First Attempt: Send Efficiency and Flexibility to Dr. Oop's Couples Therapy</a>
+</li>
+<li style="margin-bottom: 0px;">
+	<a class="pagemenu-link" href="#part3">Respecting the Classics: Old-School Handcrafting</a>
+</li>
+<li style="margin-bottom: 0px;">
+	<a class="pagemenu-link" href="#part4">Success at Dr. Metaprogramming's Clinic</a>
+</li>
+<li style="margin-bottom: 0px;">
+	<a class="pagemenu-link" href="#part5">It Walks Like a Duck and Quacks Like a Duck...Kill It!</a>
+</li>
+<li style="margin-bottom: 0px;">
+	<a class="pagemenu-link" href="#part6">Metaprogramming Plus: The Flexibility Enhancements</a>
+	
+	<ul style="font-weight: bold; margin-top: 0px;">
+	<li style="margin-bottom: 0px;">
+		<a class="pagemenu-link" href="#part6-1">Method #1: Compile-Time Function Execution</a>
+	</li>
+	<li style="margin-bottom: 0px;">
+		<a class="pagemenu-link" href="#part6-2">Method #2: Compiling at Runtime</a>
+	</li>
+	<li style="margin-bottom: 0px;">
+		<a class="pagemenu-link" href="#part6-3">Method #3: Convert a Runtime Value to Compile-Time</a>
+	</li>
+	<li style="margin-bottom: 0px;">
+		<a class="pagemenu-link" href="#part6-4">Method #4: Dynamic Fallback</a>
+	</li>
+	</ul>
+</li>
+<li style="margin-bottom: 0px;">
+	<a class="pagemenu-link" href="#part7">The Last Remaining Elephant In The Room: Runtime Conversion</a>
+	
+	<ul style="font-weight: bold; margin-top: 0px;">
+	<li style="margin-bottom: 0px;">
+		<a class="pagemenu-link" href="#part7-1">Conversion Downsides And Possible Fixes</a>
+		
+		<ul style="font-weight: bold; margin-top: 0px;">
+		<li style="margin-bottom: 0px;">
+			<a class="pagemenu-link" href="#part7-1-1">Hold It, Gizmo! Quit Squirming Around!</a>
+		</li>
+		<li style="margin-bottom: 0px;">
+			<a class="pagemenu-link" href="#part7-1-2">Hey Data, Get Back Here!</a>
+		</li>
+		</ul>
+	</li>
+	</ul>
+</li>
+<li style="margin-bottom: 0px;">
+	<a class="pagemenu-link" href="#part8">Curtain Call</a>
+</li>
+</ol>
+
+<a name="part1" />
+<h2>Have Your Efficiency, and Flexibility Too</h2>
+
+<p>
+Efficiency and flexibility are programming's classic odd couple.
+Both are undeniably useful, but they never seem to get along. You try to
+improve one, and the other just balks and storms off. Prima donna!
+That might be fine for some scenes, but often you can't get by with only one:
+It breaks the whole dynamic!
+</p>
+
+<p>
+Just look how the efficiency and flexibility knuckleheads bicker in even the
+simplest situations. This example is written in the
+[$link|http://www.digitalmars.com/d/2.0|D programming language$],
+but it's the same sad old story in any language:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex1_original.d | ex1_original.d $]:
+</p>
+[$code|highlight|
+[:struct Gizmo
+{
+	this(int numPorts, bool isSpinnable)
+	{
+		if(numPorts < 1)
+			throw new Exception("A portless Gizmo is useless!");
+
+		ports.length = numPorts;
+		_isSpinnable = isSpinnable;
+	}
+
+	private OutputPort[] ports;
+	@property int numPorts()
+	{
+		return ports.length;
+	}
+	void doStuff()
+	{
+		foreach(port; ports)
+			port.zap();
+	}
+
+	private bool _isSpinnable;
+	@property int isSpinnable()
+	{
+		return _isSpinnable;
+	}
+	int spinCount;
+	void spin()
+	{
+		// Attempting to spin a non-spinnable Gizmo is OK.
+		// Like insulting a fishtank, it merely has no effect.
+		if(isSpinnable)
+			spinCount++; // Spinning! Wheeee!
+	}
+}:]
+$]
+
+<p>
+Ok, so I guess the fighting between efficiency and flexibility isn't so
+obvious at a glance. They're making some ordinary-looking Gizmos and nothing
+seems immediately wrong. There's no fists flying, no colorful primetime-banned
+language, no headlocks or piledrivers. But you have to look closer:
+it's passive-aggression. And experts say that's psychologically-damaging, right?
+</p>
+
+<p>
+Normally, code like that would be fine, so what's the problem? Well, we
+don't just have two or three Gizmos collecting dust until a rare special
+occasion when we decide to pull one out to use it. Oh, no. Gizmos are the
+main component in the real product: the UltraGiz. The UltraGiz is made of
+thousands of Gizmos of all different types, and it really gives those Gizmos
+a big workout.
+Plus, each port-zapping is fairly quick. The real expense comes from how many
+port-zaps occur.</p>
+
+<p>
+So even a small improvement to the Gizmo's size and speed
+will add up to a big improvement in the UltraGiz. And since many different
+types of Gizmos are needed, we know we need both efficiency and flexibility.
+</p>
+
+<p>
+What flexibility is needed? For one, some Gizmos need to spin, and some
+don't. But <em>every</em> Gizmo is paying the price for that flexibility:
+There's always that [$code|inline|spinCount$] variable, even for ones that don't spin.
+And they all have to take the time to check the [$code|inline|isSpinnable$] variable.
+Heck, each Gizmo even has to use storage space just to know whether it's
+spinnable or not. They're not just stamped on the side with "spinny" or
+"no spinny".
+</p>
+
+<p>
+And then there's the output ports. Every time any Gizmo is called upon
+to do its stuff, it has to check how many ports there are, zap the first
+one, increment some internal value, check if its done, zap the next one,
+etc. That's necessary for a few of the Gizmos, but most Gizmos only have
+one or two ports. Why can't they just zap their one or two ports and be
+done with it? Most Gizmos have no need for that extra overhead.
+</p>
+
+<p>
+Ultimately, the problem boils down to all that flexibility coming from
+runtime variables. Since the flexibility happens at runtime, the compiler
+can't usually optimize away the speed issues. And since all the Gizmos are
+the same type, struct Gizmo, the compiler can't optimize the space issues
+either.
+</p>
+
+<p>
+Let's see how the Gizmos currently perform. I'll use this test program
+to simulate an UltraGiz and time it:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex1_original.d | ex1_original.d $]:
+</p>
+[$code|highlight|
+[:struct OutputPort
+{
+	int numZaps;
+	void zap()
+	{
+		numZaps++;
+	}
+}
+
+struct UltraGiz
+{
+	Gizmo[] gizmos;
+
+	int numTimesUsedSpinny;
+	int numTimesUsedTwoPort;
+
+	private void useGizmo(ref Gizmo gizmo)
+	{
+		gizmo.doStuff();
+		gizmo.spin();
+		
+		if(gizmo.isSpinnable)
+			numTimesUsedSpinny++;
+		
+		if(gizmo.numPorts == 2)
+			numTimesUsedTwoPort++;
+	}
+	
+	void run()
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+
+		//  Create gizmos
+		gizmos.length = 50_000;
+		foreach(i;      0..10_000) gizmos[i] = Gizmo(1, false);
+		foreach(i; 10_000..20_000) gizmos[i] = Gizmo(1, true );
+		foreach(i; 20_000..30_000) gizmos[i] = Gizmo(2, false);
+		foreach(i; 30_000..40_000) gizmos[i] = Gizmo(2, true );
+		foreach(i; 40_000..45_000) gizmos[i] = Gizmo(5, false);
+		foreach(i; 45_000..50_000) gizmos[i] = Gizmo(5, true );
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		foreach(ref gizmo; gizmos)
+			useGizmo(gizmo);
+		
+		writeln(stopWatch.peek.msecs, "ms");
+
+		assert(numTimesUsedSpinny  == 25_000 * 10_000);
+		assert(numTimesUsedTwoPort == 20_000 * 10_000);
+	}
+}
+
+void main()
+{
+	UltraGiz ultra;
+	ultra.run();
+	
+	// Runtime error: A portless Gizmo is useless!
+	//auto g = Gizmo(0, true);
+}:]
+$]
+
+<p>
+On my 1.7 Ghz Celeron (Yes, I know that's old, please don't flame me!),
+compiling with DMD in release mode with optimizations and inlining on, my
+result is 21 seconds. My system's task manager tells me it used
+10.4 MB of RAM. Hmm, even on my old hardware, that could really be better.
+</p>
+
+<p>
+Flexibility is really starting to push his co-star's buttons. Efficiency
+is even getting ready to take a swing at Flexibility. Uh, oh! At this point,
+many people just decide to prioritize either efficiency or flexibility.
+Often, this comes with reasons like "Hardware just keeps getting faster"
+or "This is built for speed, those who need flexibility can use a slower
+alternative." I've never liked to compromise, and I think we can do better.
+So let's see if we can diffuse this odd couple's situation before it turns
+into an all-out brawl (and they consequently loose their lucrative
+time-slot due to prime-time decency standards).
+</p>
+
+<a name="part2" />
+<h2>First Attempt: Send Efficiency and Flexibility to Dr. Oop's Couples Therapy</h2>
+
+<p>
+Dr. Oop has had much success helping many couples overcome their
+differences. He's often the go-to guy for many programming difficulties,
+and for very good reason. After listening to our protagonists' story, he
+prescribes interfaces and subclassing. To avoid any need for multiple
+inheritance or code duplication (both are known to have problems), he'll
+also add in a touch of composition.
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex2_objectOriented.d | ex2_objectOriented.d $]:
+</p>
+[$code|highlight|
+[:interface ISpinner
+{
+	@property bool isSpinnable();
+	void spin();
+}
+
+final class SpinnerStub : ISpinner
+{
+	@property bool isSpinnable()
+	{
+		return false;
+	}
+	void spin()
+	{
+		// Do nothing
+	}
+}
+
+final class Spinner : ISpinner
+{
+	@property bool isSpinnable()
+	{
+		return true;
+	}
+	int spinCount;
+	void spin()
+	{
+		spinCount++; // Spinning! Wheeee!
+	}
+}
+
+abstract class Gizmo
+{
+	this()
+	{
+		spinner = createSpinner();
+	}
+	
+	@property int numPorts();
+	void doStuff();
+
+	ISpinner spinner;
+	ISpinner createSpinner();
+}
+
+class OnePortGizmo : Gizmo
+{
+	override ISpinner createSpinner()
+	{
+		return new SpinnerStub();
+	}
+	
+	private OutputPort[1] ports;
+	override @property int numPorts()
+	{
+		return 1;
+	}
+	override void doStuff()
+	{
+		ports[0].zap();
+	}
+}
+
+class TwoPortGizmo : Gizmo
+{
+	override ISpinner createSpinner()
+	{
+		return new SpinnerStub();
+	}
+	
+	private OutputPort[2] ports;
+	override @property int numPorts()
+	{
+		return 2;
+	}
+	override void doStuff()
+	{
+		ports[0].zap();
+		ports[1].zap();
+	}
+}
+
+class MultiPortGizmo : Gizmo
+{
+	this(int numPorts)
+	{
+		if(numPorts < 1)
+			throw new Exception("A portless Gizmo is useless!");
+
+		if(numPorts == 1 || numPorts == 2)
+			throw new Exception("Wrong type of Gizmo!");
+
+		ports.length = numPorts;
+	}
+
+	override ISpinner createSpinner()
+	{
+		return new SpinnerStub();
+	}
+	
+	private OutputPort[] ports;
+	override @property int numPorts()
+	{
+		return ports.length;
+	}
+	override void doStuff()
+	{
+		foreach(port; ports)
+			port.zap();
+	}
+}
+
+final class SpinnyOnePortGizmo : OnePortGizmo
+{
+	override ISpinner createSpinner()
+	{
+		return new Spinner();
+	}
+}
+
+final class SpinnyTwoPortGizmo : TwoPortGizmo
+{
+	override ISpinner createSpinner()
+	{
+		return new Spinner();
+	}
+}
+
+final class SpinnyMultiPortGizmo : MultiPortGizmo
+{
+	this(int numPorts)
+	{
+		super(numPorts);
+	}
+
+	override ISpinner createSpinner()
+	{
+		return new Spinner();
+	}
+}:]
+$]
+
+<p>
+Oh dear God, what have we done?! Blech!
+</p>
+
+<p>
+Ok, calm down...Deep breaths
+now...Stay with me...Breathe...Breathe...Maybe it's not as bad as it seems.
+Maybe it'll be worth it. After all, it's technically flexible. Not pretty,
+but flexible. Maybe the efficiency will be good enough to make it a
+worthwhile compromise. Let's see...
+</p>
+
+<p>
+The code to test this version is almost the same as before so I won't
+show it here. But you can view it in
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex2_objectOriented.d | ex2_objectOriented.d $]
+if you'd like.
+</p>
+
+<p>
+On my system, this takes 40 seconds and 11.3 MB. That's nearly twice the
+time and 10% more memory as before. Hmm, uhh...nope, no good. Well,
+that was a bust.
+</p>
+
+<p>
+So what went wrong? The problem is, object orientation involves some
+overhead. Polymorphism requires each instance of any Gizmo type to store
+some extra hidden data, which not only increases memory usage but also
+allows fewer Gizmos to fit into the cache. Polymorphism also means an
+extra indirection when calling a member function. This extra indirection
+can only sometimes be optimized away. Each Gizmo needs to be individually
+allocated (although it's possible to get around that in certain languages,
+including D, but it's still yet another thing to do). The by-reference
+nature of objects means the Gizmo arrays only contain pointers.
+Not only does that mean greater memory usage, but it can also decrease
+data locality (how "close together" related data is in memory) which leads
+to more cache misses. Using composition for the spin capability also
+decreased data locality, increased indirection, and increased memory usage.
+All things considered, we wound up doing the exact opposite of what we
+tried to do: Our attempts to decrease time and memory increased them
+instead, and also gave us less maintainable code.
+</p>
+
+<p>
+In many cases, the overhead of object orientation isn't really a big
+problem, so object orientation can be a very useful tool (although perhaps
+not so much in this case). But in highly performance-sensitive sections,
+the overhead can definitely add up and cause trouble.
+</p>
+
+<p>
+So for all the successes Dr. Oop has had, efficiency and flexibility
+are just too strongly opposed. Flexibility is left unhappy with the
+complexity required, and poor efficiency nearly had a heart attack!
+This time, Dr. Oop's solution just isn't quite what the patients has been
+hoping for. Oops, indeed.
+</p>
+
+<p>
+Programmers familiar with templated classes might be annoyed at this
+point that I've rejected the object oriented approach without considering
+the use of template classes. Those familiar with D are likely screaming
+at me, "Mixins! Mixins!" And then there's C++'s preprocessor, too. Well,
+frankly, I agree. Such things can certainly improve an object oriented
+design. But those are all forms of metaprogramming, which I haven't gotten
+to just yet. Besides, the main point I want to get across is this:
+Object orientation isn't a general substitute for metaprogramming and
+does have limitations in how well it can marry efficiency with flexibility.
+</p>
+
+
+<a name="part3" />
+<h2>Respecting the Classics: Old-School Handcrafting</h2>
+
+<p>
+Object orientation may not have worked out well for efficiency, but
+efficient code has been around since long before objects became popular.
+How did they do it back then? With good old-fashioned handcrafting,
+of course. Time for Efficiency and Flexibility to pay a visit to the
+town elder...
+</p>
+
+<p>
+After the elder introduces himself, Efficiency and Flexibility ask him
+to have a look at their problem.
+</p>
+
+<p>
+"Eh? You want I should look at your problem?"<br />
+"Yes, we'd like you to help us out."<br />
+"Help on your problem right? You want I should look at?"<br />
+"Umm...yes..."<br />
+"Ok...Hi! I'm the town elder!"
+</p>
+ 
+<p>
+Clearly this guy has a problem repeating himself. But eventually he
+pulls out his trusty oak-finished toolchain and gets to work. After what
+seems like an eternity later, he's done:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex3_handcrafted.d | ex3_handcrafted.d $]:
+</p>
+[$code|highlight|
+[:struct OnePortGizmo
+{
+	static immutable isSpinnable = false;
+	static immutable numPorts    = 1;
+	
+	private OutputPort[numPorts] ports;
+	void doStuff()
+	{
+		ports[0].zap();
+	}
+
+	void spin()
+	{
+		// Do nothing
+	}
+}
+
+struct TwoPortGizmo
+{
+	static immutable isSpinnable = false;
+	static immutable numPorts    = 2;
+	
+	private OutputPort[numPorts] ports;
+	void doStuff()
+	{
+		ports[0].zap();
+		ports[1].zap();
+	}
+
+	void spin()
+	{
+		// Do nothing
+	}
+}
+
+struct MultiPortGizmo
+{
+	this(int numPorts)
+	{
+		if(numPorts < 1)
+			throw new Exception("A portless Gizmo is useless!");
+
+		if(numPorts == 1 || numPorts == 2)
+			throw new Exception("Wrong type of Gizmo!");
+
+		ports.length = numPorts;
+	}
+	
+	static immutable isSpinnable = false;
+	
+	private OutputPort[] ports;
+	@property int numPorts()
+	{
+		return ports.length;
+	}
+	void doStuff()
+	{
+		foreach(port; ports)
+			port.zap();
+	}
+
+	void spin()
+	{
+		// Do nothing
+	}
+}
+
+struct SpinnyOnePortGizmo
+{
+	static immutable isSpinnable = true;
+	static immutable numPorts    = 1;
+
+	private OutputPort[numPorts] ports;
+	void doStuff()
+	{
+		ports[0].zap();
+	}
+
+	int spinCount;
+	void spin()
+	{
+		spinCount++; // Spinning! Wheeee!
+	}
+}
+
+struct SpinnyTwoPortGizmo
+{
+	static immutable isSpinnable = true;
+	static immutable numPorts    = 2;
+
+	private OutputPort[numPorts] ports;
+	void doStuff()
+	{
+		ports[0].zap();
+		ports[1].zap();
+	}
+
+	int spinCount;
+	void spin()
+	{
+		spinCount++; // Spinning! Wheeee!
+	}
+}
+
+struct SpinnyMultiPortGizmo
+{
+	this(int numPorts)
+	{
+		if(numPorts < 1)
+			throw new Exception("A portless Gizmo is useless!");
+
+		if(numPorts == 1 || numPorts == 2)
+			throw new Exception("Wrong type of Gizmo!");
+
+		ports.length = numPorts;
+	}
+
+	static immutable isSpinnable = true;
+
+	private OutputPort[] ports;
+	@property int numPorts()
+	{
+		return ports.length;
+	}
+	void doStuff()
+	{
+		foreach(port; ports)
+			port.zap();
+	}
+
+	int spinCount;
+	void spin()
+	{
+		spinCount++; // Spinning! Wheeee!
+	}
+}:]
+$]
+
+<p>
+It certainly matches the old man's speech patterns, but just look at the
+careful attention to detail and workmanship! Two handmade single-port Gizmos,
+one spinny and one not. Two handmade double-port Gizmos. And even a couple
+general-purpose multi-port jobs. Let's take 'er for a...ahem...a spin...
+</p>
+
+<p>
+On my system, that clocks in at 10.5 seconds and 9.4 MB. Hey, not bad!
+That's definitely an improvement over the original.
+It's twice as fast, and uses about 10% less memory.
+</p>
+
+<p>
+The old guy's a bit
+eccentric, and his methods may be a bit out of date, but he really knows
+his stuff. Too bad the approach is too meticulous and error-prone to be
+useful for the rest of us mere mortals. Or for those of us working on modern
+large-scale high-complexity software.
+</p>
+
+<p>
+I should point out that since the Gizmos are now separate types,
+with no common base type, they can no longer be stored all in one array.
+But that's not a big problem, we can just keep a separate array for each type.
+No big deal. And if we wanted, we could create a
+[$code|inline|struct GizmoGroup$] that kept arrays of all the different
+gizmo types in a convenient little package. The town elder didn't actually
+make such a struct, but in any case, here's the updated [$code|inline|UltraGiz$]:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex3_handcrafted.d | ex3_handcrafted.d $]:
+</p>
+[$code|highlight|
+[:struct UltraGiz
+{
+	OnePortGizmo[]         gizmosA;
+	SpinnyOnePortGizmo[]   gizmosB;
+	TwoPortGizmo[]         gizmosC;
+	SpinnyTwoPortGizmo[]   gizmosD;
+	MultiPortGizmo[]       gizmosE;
+	SpinnyMultiPortGizmo[] gizmosF;
+
+	int numTimesUsedSpinny;
+	int numTimesUsedTwoPort;
+
+	// Ok, technically this is a simple form of metaprogramming, so I'm
+	// cheating slightly. But I just can't bring myself to copy/paste the
+	// exact same function six times even for the sake of an example.
+	void useGizmo(T)(ref T gizmo)
+	{
+		gizmo.doStuff();
+		gizmo.spin();
+		
+		if(gizmo.isSpinnable)
+			numTimesUsedSpinny++;
+		
+		if(gizmo.numPorts == 2)
+			numTimesUsedTwoPort++;
+	}
+
+	void run()
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+
+		//  Create gizmos
+		gizmosA.length = 10_000;
+		gizmosB.length = 10_000;
+		gizmosC.length = 10_000;
+		gizmosD.length = 10_000;
+		gizmosE.length =  5_000;
+		gizmosF.length =  5_000;
+		foreach(i; 0..gizmosE.length) gizmosE[i] = MultiPortGizmo(5);
+		foreach(i; 0..gizmosF.length) gizmosF[i] = SpinnyMultiPortGizmo(5);
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		{
+			foreach(ref gizmo; gizmosA) useGizmo(gizmo);
+			foreach(ref gizmo; gizmosB) useGizmo(gizmo);
+			foreach(ref gizmo; gizmosC) useGizmo(gizmo);
+			foreach(ref gizmo; gizmosD) useGizmo(gizmo);
+			foreach(ref gizmo; gizmosE) useGizmo(gizmo);
+			foreach(ref gizmo; gizmosF) useGizmo(gizmo);
+		}
+		
+		writeln(stopWatch.peek.msecs, "ms");
+
+		assert(numTimesUsedSpinny  == 25_000 * 10_000);
+		assert(numTimesUsedTwoPort == 20_000 * 10_000);
+	}
+}:]
+$]
+
+<p>
+In reality, specially handcrafting only-slightly-different versions is
+such a meticulous, repetitive maintenance nightmare that you'd normally
+only make one or two specially-tweaked versions, and leave the rest of the
+cases up to a general-purpose version. And even that can be a pain.
+So as happy as efficiency may be, flexibility is storming out of the room.
+We're getting close, but haven't succeeded yet. What we need is a better
+twist on this handcrafting approach...
+</p>
+
+
+<a name="part4" />
+<h2>Success at Dr. Metaprogramming's Clinic</h2>
+
+<p>
+Dr. Metaprogramming listens to the story, pauses for a second,
+and replies, "Turn your runtime options into compile-time options."
+Say what? The metaprogramming doc takes the original problem, moves
+[$code|inline|numPorts$] and [$code|inline|isSpinnable$]
+up to the struct Gizmo line, makes just a few small changes, and:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]:
+</p>
+[$code|highlight|
+[:struct Gizmo(int _numPorts, bool _isSpinnable)
+{
+	// So other generic code can determine the
+	// number of ports and spinnability:
+	static immutable numPorts    = _numPorts;
+	static immutable isSpinnable = _isSpinnable;
+
+	static if(numPorts < 1)
+		static assert(false, "A portless Gizmo is useless!");
+
+	private OutputPort[numPorts] ports;
+	void doStuff()
+	{
+		static if(numPorts == 1)
+			ports[0].zap();
+		else static if(numPorts == 2)
+		{
+			ports[0].zap();
+			ports[1].zap();
+		}
+		else
+		{
+			foreach(port; ports)
+				port.zap();
+		}
+	}
+
+	static if(isSpinnable)
+		int spinCount;
+
+	void spin()
+	{
+		static if(isSpinnable)
+			spinCount++; // Spinning! Wheeee!
+	}
+}:]
+$]
+
+<p>
+Dr. Metaprogramming points out, "As an added bonus, trying to make a
+portless Gizmo is now caught at compile-time instead of runtime."
+</p>
+
+<p>
+Efficiency whines, "Look at all those [$code|inline|if$]s!" The doc explains that those
+aren't real [$code|inline|if$]s, they're [$code|inline|static if$]. They only run at compile-time.
+</p>
+
+<p>
+Efficiency responds, "Oh, ok. So you're really making many different
+types, right? Isn't there an overhead for that, like with polymorphism?"
+The doc says it does make many different types, but there's no
+runtime polymorphism (just compile-time) and no overhead. Efficiency smiles.
+</p>
+
+<p>
+Seeing Efficiency happy makes Flexibility concerned. Flexibility balks,
+"We occasionally require some logic to determine a Gizmo's number of ports and
+spinnability, so I doubt we can do this." The doc assures him that D
+can run many ordinary functions at compile-time. And in other languages,
+code can just be generated as a separate step before compiling, or
+a preprocessor can be used. He adds
+that even if runtime logic really is needed, there are ways to do that, too.
+He'll demonstrate all of this shortly.
+Flexibility smiles.
+</p>
+
+<p>
+The code to test this is still very similar to all the other versions.
+But since this is the first metaprogramming version, I'll show the new
+Gizmo-testing code here:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]:
+</p>
+[$code|highlight|
+[:struct OutputPort
+{
+	int numZaps;
+	void zap()
+	{
+		numZaps++;
+	}
+}
+
+struct UltraGiz
+{
+	// We could still use gizmosA, gizmosB, etc. just like before,
+	// but templating them will make things a little easier:
+	template gizmos(int numPorts, bool isSpinnable)
+	{
+		Gizmo!(numPorts, isSpinnable)[] gizmos;
+	}
+
+	int numTimesUsedSpinny;
+	int numTimesUsedTwoPort;
+
+	void useGizmo(T)(ref T gizmo)
+	{
+		gizmo.doStuff();
+		gizmo.spin();
+		
+		if(gizmo.isSpinnable)
+			numTimesUsedSpinny++;
+		
+		if(gizmo.numPorts == 2)
+			numTimesUsedTwoPort++;
+	}
+
+	void run()
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+
+		// Create gizmos
+		gizmos!(1, false).length = 10_000;
+		gizmos!(1, true ).length = 10_000;
+		gizmos!(2, false).length = 10_000;
+		gizmos!(2, true ).length = 10_000;
+		gizmos!(5, false).length =  5_000;
+		gizmos!(5, true ).length =  5_000;
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		{
+			foreach(ref gizmo; gizmos!(1, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(1, true )) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, true )) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(5, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(5, true )) useGizmo(gizmo);
+		}
+		
+		writeln(stopWatch.peek.msecs, "ms");
+
+		assert(numTimesUsedSpinny  == 25_000 * 10_000);
+		assert(numTimesUsedTwoPort == 20_000 * 10_000);
+	}
+}
+
+void main()
+{
+	UltraGiz ultra;
+	ultra.run();
+	
+	// Compile time error: A portless Gizmo is useless!
+	//auto g = Gizmo!(0, true);
+}:]
+$]
+
+<p>
+One of the important things to note here is that the function [$code|inline|useGizmo()$]
+is templated to accept any type. This is necessary since there are multiple
+Gizmo types instead of just one, and also because the Gizmos are structs
+instead of classes and therefore don't have a common base type.
+So effectively, there is now a separate [$code|inline|useGizmo()$] function for each
+Gizmo type (although a smart linker might combine identical versions
+of [$code|inline|useGizmo()$] behind-the-scenes). In the next section, I'll get back to
+the matter of this function being templated, but for now, just take note of it.
+</p>
+
+<p>
+Also, note that the arrays [$code|inline|gizmosA$], [$code|inline|gizmosB$],
+etc. were replaced by a templated array. This is just like the separate arrays
+from [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex3_handcrafted.d | ex3_handcrafted.d $],
+but it gives us a better way to refer to them. For example, we now say
+[$code|inline|gizmos!(2, false)$] instead of [$code|inline|gizmosC$].
+This may seem to be of questionable benefit, especially since we could have
+just named it [$code|inline|gizmos2NoSpinny$]. But it will come in handy in
+the later metaprogramming versions since it lets us use arbitrary compile-time
+values to specify the two parameters. That gives us more metaprogramming
+power. But that will come later.
+</p>
+
+<p>
+This version gives me 10.1 seconds and 9.2 MB.
+That's just as sleek and slim as the handcrafted version and...wait no...huh?
+It's slightly <em>better</em>? Granted, it's not by much, but what's going on?
+</p>
+
+<p>
+It may seem strange that generic code could be more efficient than a specially
+handcrafted non-generic version. But at least part of what's happening is
+that with metaprogramming, the compiler is essentially doing your
+handcrafting automatically as needed.
+</p>
+
+<p>
+Remember, in the real handcrafted version, the town elder only
+handcrafted one-port and two-port versions. For everything else, he
+had to fallback to the original strategy of dealing with a variable
+number of ports at runtime. With the metaprogramming version, on the
+other hand, the compiler automatically "handcrafted" a special five-port
+version when we asked for five ports. If we had also asked for three-port
+and seven-port versions, it would have automatically "handcrafted" those
+as well. It's possible to create and maintain all those special version
+manually, but it would be  highly impractical.
+</p>
+
+<p>
+If you really do want a single type for general multi-port Gizmos, just
+like the town elder's handcrafted version, that's certainly possible
+with metaprogramming, too. In fact, we'll get to that later.
+</p>
+
+<p>
+Of course, I don't mean to imply that handcrafted optimization is obsolete.
+There are always optimizations a compiler won't be able to do. But when your
+optimization involves creating alternate versions of the same thing,
+metaprogramming makes it quick and easy to apply the same technique on
+as many different versions as you want without hindering maintainability.
+</p>
+
+<p>
+I've alluded to a number of flexibility enhancements that can be made to this
+metaprogramming version. I'll explain these as promised, but there's
+one other enhancement I'd like to cover first:
+</p>
+
+
+<a name="part5" />
+<h2>It Walks Like a Duck and Quacks Like a Duck...Kill It!</h2>
+
+<p>
+Duck typing is a topic that divides programmers almost as much as
+tabs-vs-spaces or vi-vs-emacs. While I admit I'm personally on the
+anti-duck side of the pond, I'm not going to preach it here. I only
+bring it up because there are other anti-duckers out there, and
+for them, there's something about the metaprogramming example
+they may not be happy with. But there is a solution. If you are a duck fan,
+please pardon this section's title and feel free to skip ahead.
+I promise not to say anything about you behind your back...
+</p>
+
+<p>
+Remember in the last section I pointed out the [$code|inline|useGizmo()$]
+function was templated so it could accept all the various Gizmo types?
+Well, what happens when we pass it something that isn't a Gizmo?
+For most types, the compiler will just complain that [$code|inline|doStuff()$],
+[$code|inline|spin$], [$code|inline|isSpinnable$], and
+[$code|inline|numPorts$] don't exist for the type. But what if it's
+a type that just happens to <em>look</em> like a Gizmo?
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/snippet_notAGizmo.d | snippet_notAGizmo.d $]:
+</p>
+[$code|highlight|
+[:struct BoatDock_NotAGizmo
+{
+	// Places to park your boat
+	int numPorts;
+	
+	void doStuff()
+	{
+		manageBoatTraffic();
+	}
+	
+	// Due to past troubles with local salt-stealing porcupines
+	// swimming around and clogging up the hydraulics,
+	// some boat docks feature a special safety mechanism:
+	// "Salty-Porcupines in the Intake are Nullified",
+	// affectionately called "spin" by the locals.
+	bool isSpinnable;
+	void spin()
+	{
+		blastTheCrittersAway();
+	}
+}:]
+$]
+
+<p>
+The templated [$code|inline|useGizmo()$] function will happily accept that. Hmm,
+accepting a type  based on its members rather than its declared name,
+what does that remind you of...? Yup, duck typing.
+</p>
+
+<p>
+Granted, it's not exactly the same as the usual duck typing
+popularized by dynamic languages. It's more like a compile-time variation of it.
+But it still has the same basic effect: If something looks like a Gizmo,
+it will be treated as a Gizmo whether it was intended to be or not.
+Whether or not that's acceptable is a matter for The Great Duck Debate,
+but for those who dislike duck typing, it's possible to kill the duck
+with metaprogramming and constraints. This is almost identical to
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $],
+but with a few changes and additions that I've highlighted:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex5_meta_deadDuck1.d | ex5_meta_deadDuck1.d $]:
+</p>
+[$code|highlight|
+[:+template isIGizmo(T)
++{
++	immutable bool isIGizmo = __traits(compiles,
++		// This is just an anonymous function.
++		// We won't actually run it, though.
++		// We're just making sure all of this compiles for T.
++		(){  
++			T t;
++			static assert(T._this_implements_interface_IGizmo_);
++			int n = t.numPorts;
++			static if(T.isSpinnable)
++				int s = t.spinCount;
++			t.doStuff();
++			t.spin();
++		}
++	);
++}
++
++// Almost identical to the original metaprogramming Gizmo
++// in 'ex4_metaprogramming.d', but with two little things added:
+struct Gizmo(int _numPorts, bool _isSpinnable)
+{
+	// So other generic code can determine the
+	// number of ports and spinnability:
+	static immutable numPorts    = _numPorts;
+	static immutable isSpinnable = _isSpinnable;
++
++	// Announce that this is a Gizmo.
++	// An enum takes up no space.
++	static enum _this_implements_interface_IGizmo_ = true;
++	
++	// Verify this actually does implement the interface
++	static assert(
++		isIGizmo!(Gizmo!(numPorts, isSpinnable)),
++		"This type fails to implement IGizmo"
++	);
+
+	static if(numPorts < 1)
+		static assert(false, "A portless Gizmo is useless!");
+
+	private OutputPort[numPorts] ports;
+	void doStuff()
+	{
+		static if(numPorts == 1)
+			ports[0].zap();
+		else static if(numPorts == 2)
+		{
+			ports[0].zap();
+			ports[1].zap();
+		}
+		else
+		{
+			foreach(port; ports)
+				port.zap();
+		}
+	}
+
+	static if(isSpinnable)
+		int spinCount;
+
+	void spin()
+	{
+		static if(isSpinnable)
+			spinCount++; // Spinning! Wheeee!
+	}
+}
+
+struct OutputPort
+{
+	int numZaps;
+	void zap()
+	{
+		numZaps++;
+	}
+}
+
+struct UltraGiz
+{
+	template gizmos(int numPorts, bool isSpinnable)
+	{
+		Gizmo!(numPorts, isSpinnable)[] gizmos;
+	}
+
+	int numTimesUsedSpinny;
+	int numTimesUsedTwoPort;
+
++	void useGizmo(T)(ref T gizmo) if(isIGizmo!T)
+	{
+		gizmo.doStuff();
+		gizmo.spin();
+		
+		if(gizmo.isSpinnable)
+			numTimesUsedSpinny++;
+		
+		if(gizmo.numPorts == 2)
+			numTimesUsedTwoPort++;
+	}
+
+	void run()
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+
+		// Create gizmos
+		gizmos!(1, false).length = 10_000;
+		gizmos!(1, true ).length = 10_000;
+		gizmos!(2, false).length = 10_000;
+		gizmos!(2, true ).length = 10_000;
+		gizmos!(5, false).length =  5_000;
+		gizmos!(5, true ).length =  5_000;
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		{
+			foreach(ref gizmo; gizmos!(1, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(1, true )) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, true )) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(5, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(5, true )) useGizmo(gizmo);
+		}
+		
+		writeln(stopWatch.peek.msecs, "ms");
+
+		assert(numTimesUsedSpinny  == 25_000 * 10_000);
+		assert(numTimesUsedTwoPort == 20_000 * 10_000);
+	}
+}:]
+$]
+
+<p class="note">
+Those experienced with the D programming language may notice this
+is very similar to the way D's ranges are created and used, but with
+the added twist that a type must actually declare itself to be
+compatible with a certain interface.
+</p>
+
+<p>
+Now, if you try to pass a boat dock to [$code|inline|useGizmo()$], it won't
+work because the boat dock hasn't been declared to implement the
+[$code|inline|IGizmo$] interface. Instead, you'll just get a compiler error
+saying there's no [$code|inline|useGizmo()$] overload that can accept
+a boat dock. As an extra bonus, if you change Gizmo and accidentally break
+it's [$code|inline|IGizmo$] interface (for instance, by deleting the
+[$code|inline|doStuff()$] function), you'll get a better error message
+than before. Best of all, these changes have no impact on speed or memory
+since it all happens at compile-time.
+</p>
+
+<p>
+Under the latest version of DMD at the time of this writing (DMD v2.053),
+if you break Gizmo's [$code|inline|IGizmo$] interface, this is the error
+message you'll get:
+</p>
+
+[$code|plain|
+[:ex5_meta_deadDuck1.d(44): Error: static assert  "This type fails to implement IGizmo"
+ex5_meta_deadDuck1.d(92):        instantiated from here: Gizmo!(numPorts,isSpinnable)
+ex5_meta_deadDuck1.d(116):        instantiated from here: gizmos!(1,false):]
+$]
+
+<p>
+So it plainly tells you what type failed to implement what interface.
+In a language like D that supports compile-time reflection, it's also
+possible to design the [$code|inline|IGizmo$] interface so the error message
+will state which part of the interface wasn't implemented. But the
+specifics of that are beyond the scope of this article (That's author-speak
+for "I ain't gonna write it.")
+</p>
+
+<p>
+This is great, but announcing and verifying these dead-duck interfaces can be
+better generalized. Changes from
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex5_meta_deadDuck1.d | ex5_meta_deadDuck1.d $]
+are highlighted:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex5_meta_deadDuck2.d | ex5_meta_deadDuck2.d $]:
+</p>
+[$code|highlight|
+[:+string declareInterface(string interfaceName, string thisType)
++{
++	return `
++		// Announce what interface this implements.
++		// An enum takes up no space.
++		static enum _this_implements_interface_`~interfaceName~`_ = true;
++		
++		// Verify this actually does implement the interface
++		static assert(
++			is`~interfaceName~`!(`~thisType~`),
++			"This type fails to implement `~interfaceName~`"
++		);
++	`;
++}
++
+// Almost identical to the original metaprogramming Gizmo
++// in 'ex4_metaprogramming.d', but with *one* little thing added:
+struct Gizmo(int _numPorts, bool _isSpinnable)
+{
+	// So other generic code can determine the
+	// number of ports and spinnability:
+	static immutable numPorts    = _numPorts;
+	static immutable isSpinnable = _isSpinnable;
+
++	// Announce and Verify that this is a Gizmo.
++	mixin(declareInterface("IGizmo", "Gizmo!(numPorts, isSpinnable)"));
+	
+	static if(numPorts < 1)
+		static assert(false, "A portless Gizmo is useless!");
+	
+	private OutputPort[numPorts] ports;
+	void doStuff()
+	{
+		static if(numPorts == 1)
+			ports[0].zap();
+		else static if(numPorts == 2)
+		{
+			ports[0].zap();
+			ports[1].zap();
+		}
+		else
+		{
+			foreach(port; ports)
+				port.zap();
+		}
+	}
+
+	static if(isSpinnable)
+		int spinCount;
+
+	void spin()
+	{
+		static if(isSpinnable)
+			spinCount++; // Spinning! Wheeee!
+	}
+}:]
+$]
+
+<p>
+If you ever want to create another type that also counts as an IGizmo,
+all you have to do is add the declaration line:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/snippet_anotherGizmo.d | snippet_anotherGizmo.d $]:
+</p>
+[$code|highlight|
+[:struct AnotherGizmo  // Even a class would work, too!
+{
++	mixin(declareInterface("IGizmo", "AnotherGizmo"));
+	
+	// Implement all the required members of IGizmo here...
+}:]
+$]
+
+<p>
+Now [$code|inline|isIGizmo$] will accept any [$code|inline|AnotherGizmo$], too.
+And just like a real class-based interface, if you forget to implement part
+of IGizmo, the compiler will tell you.
+</p>
+
+<p>
+There are many further improvements that can be made to
+[$code|inline|declareInterface()$]. For instance, although it's currently using
+a string mixin, it could be improved by taking advantage of D's template mixin
+feature. It could also be made to detect the name of your type so you only
+have to specify [$code|inline|"IGizmo"$], and not [$code|inline|"AnotherGizmo"$].
+But this at least demonstrates the basic principle.
+</p>
+
+<p class="note">
+For the sake of simplicity, the rest of the examples in this
+article will forgo the anti-duck typing
+techniques covered in this section.
+</p>
+
+<p>
+Of course, none of this is needed if you're only using classes, which can
+truly inherit from one another. In that case, you can just use real
+inheritance-based interfaces. But if you want to avoid the overhead
+of classes, you can use these metaprogramming tricks to achieve much
+of the same flexibility.
+</p>
+
+
+<a name="part6" />
+<h2>Metaprogramming Plus: The Flexibility Enhancements</h2>
+
+<p>
+If you recall from earlier, Flexibility was concerned that the metaprogramming
+approach seemed to prevent complex configurability. He didn't think he could use
+complex logic to decide what types of Gizmos needed to be made and how many.
+The problem is that Gizmo's settings are specified at compile-time,
+but the logic to determine the configuration may need to
+happen at runtime.
+Dr. Metaprogramming knew that could be worked around and promised
+to show various methods of handing this.
+</p>
+
+<p>
+These methods will be demonstrated by making two basic changes to the
+existing metaprogramming example:
+</p>
+
+<ol>
+<li>
+Currently, there are 1-port, 2-port and 5-port Gizmos. The 5-port ones
+will no longer be hardcoded as 5-port. The number of ports on these
+larger Gizmos will now be configurable via [$code|inline|bigPorts$].
+</li>
+<li>
+Only 2,000 spinnable 2-port Gizmos will be made instead of 10,000.
+But 8,000 extra Gimos will be created. The type of these extra Gizmos will be
+configurable via [$code|inline|extrasNumPorts$] and [$code|inline|extrasIsSpinnable$].
+</li>
+</ol>
+
+<p>
+Naturally, if you want to compare the time and memory usage with all the
+previous versions, then these values should be set to [$code|inline|bigPorts = 5$],
+[$code|inline|extrasNumPorts = 2$] and [$code|inline|extrasIsSpinnable = true$].
+</p>
+
+<p>
+Note that none of these require any changes to the Gizmo type itself.
+Only the code in [$code|inline|UltraGiz$] and [$code|inline|main()$] is affected.
+That is to say, the only changes are in setting up and using the same Gizmo
+types that we've already written.
+</p>
+
+<a name="part6-1" />
+<h3>Method #1: Compile-Time Function Execution</h3>
+
+<p>
+Frequently abbreviated as CTFE,
+this method can't be done in all languages. And in a language that does
+support it (like D) it can be the least powerful method.
+But it's the simplest and easiest, and is perfectly sufficient in many 
+situations.
+</p>
+
+<p>
+All that needs to be done is assign the return value of a function
+to a compile-time value. The compiler will execute the function itself
+(if it can) instead of waiting until runtime. Simple.
+Changes from
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]
+are highlighted:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex1_ctfe.d | ex6_meta_flex1_ctfe.d $]:
+</p>
+[$code|highlight|
+[:struct UltraGiz
+{
+	template gizmos(int numPorts, bool isSpinnable)
+	{
+		Gizmo!(numPorts, isSpinnable)[] gizmos;
+	}
+
+	int numTimesUsedSpinny;
+	int numTimesUsedTwoPort;
+
+	void useGizmo(T)(ref T gizmo)
+	{
+		gizmo.doStuff();
+		gizmo.spin();
+		
+		if(gizmo.isSpinnable)
+			numTimesUsedSpinny++;
+		
+		if(gizmo.numPorts == 2)
+			numTimesUsedTwoPort++;
+	}
++
++	static int generateBigPorts()
++	{
++		// Big fancy computation to determine number of ports
++		int num=0;
++		for(int i=0; i<10; i++)
++		{
++			if(i >= 5)
++				num++;
++		}
++		return num; // Ultimately, the result is 5
++	}
++	
++	static int generateExtrasNumPorts(int input)
++	{
++		return input - 3;
++	}
++	
++	static bool generateExtrasIsSpinnable(int input=9)
++	{
++		if(input == 0)
++			return false;
++			
++		return !generateExtrasIsSpinnable(input-1);
++	}
++	
++	static immutable bigPort           = generateBigPorts();
++	static immutable extrasNumPorts    = generateExtrasNumPorts(bigPort);
++	static immutable extrasIsSpinnable = generateExtrasIsSpinnable();
+
+	void run()
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+		
+		// Create gizmos
+		gizmos!(1, false).length = 10_000;
+		gizmos!(1, true ).length = 10_000;
+		gizmos!(2, false).length = 10_000;
++
++		// Use extrasNumPorts and extrasIsSpinnable
++		// so 8,000 more of these will be made down below.
++		gizmos!(2, true ).length =  2_000;
++
++		gizmos!(bigPort, false).length = 5_000;
++		gizmos!(bigPort, true ).length = 5_000;
++		
++		// Add in the extra Gizmos
++		gizmos!(extrasNumPorts, extrasIsSpinnable).length += 8_000;
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		{
+			foreach(ref gizmo; gizmos!(1, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(1, true )) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, true )) useGizmo(gizmo);
++			foreach(ref gizmo; gizmos!(bigPort, false)) useGizmo(gizmo);
++			foreach(ref gizmo; gizmos!(bigPort, true )) useGizmo(gizmo);
+		}
+		
+		writeln(stopWatch.peek.msecs, "ms");
+	}
+}
+
+void main()
+{
+	UltraGiz ultra;
+	ultra.run();
+	
+	// Compile time error: A portless Gizmo is useless!
+	//auto g = Gizmo!(0, true);
+}:]
+$]
+
+
+<a name="part6-2" />
+<h3>Method #2: Compiling at Runtime</h3>
+
+<p>
+On the downside, this method takes extra time (potentially very noticeable)
+whenever a setting needs to be changed. That may or may not be a problem
+depending on the nature of the program and the setting.
+Also, you'll need to distribute your configurable source code along with
+your program. Finally, this method requires either: 
+</p>
+
+<ol>
+<li>
+The user has the appropriate compiler set up.
+</li>
+<li>
+You package the compiler along with your application.
+</li>
+</ol>
+
+<p>
+Note that rules out using this method for most embedded targets.
+</p>
+
+<p>
+So ok, maybe this doesn't sound very good so far. However, this method is 
+extremely powerful, viable for a wide variety of languages, and only requires
+very simple changes to the code being configured. Additionally,
+the compiler requirement may not be as much of a problem as it may seem
+if you have permission to redistribute the compiler,
+or if you're targeting Linux (which generally has pretty good package
+management and dependency tools), or if your program is only intended
+for private use.
+</p>
+
+<p>
+The trick here is to generate a small amount of source code at runtime,
+recompile your program, and then run the result.
+</p>
+
+<p>
+For simplicity, this example will use a separate "frontend" program that will
+configure, compile and run the real example program. But you could also have
+it all in one program: After your program issues the command to recompile
+itself, it would then relaunch itself (possibly saving and restoring any
+important state in the process) much like auto-updating programs that
+download and launch newer versions of themselves would do. Or, you could
+keep the configurable routines in a DLL or .so, unload the DLL or .so, recompile it,
+and then reload it.
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex2_frontend.d | ex6_meta_flex2_frontend.d $],
+the frontend program:
+</p>
+[$code|highlight|
+[:import std.conv;
+import std.file;
+import std.process;
+import std.stdio;
+
+void main(string[] args)
+{
+	immutable configFile     = "ex6_meta_flex2_config.d";
+	immutable mainProgram    = "ex6_meta_flex2_compilingAtRuntime";
+	immutable mainProgramSrc = "ex6_meta_flex2_compilingAtRuntime.d";
+	
+	version(Windows)
+		immutable exeSuffix = ".exe";
+	else
+		immutable exeSuffix = "";
+		
+	// Number of ports on each of the many-port Gizmos.
+	// Normally 5
+	int bigPort;
+	
+	// 8,000 extra Gizmos will be created with
+	// this many ports and this spinnability.
+	// Normally 2-port spinnable
+	int  extrasNumPorts;
+	bool extrasIsSpinnable;
+	
+	try
+	{
+		bigPort           = to!int (args[1]);
+		extrasNumPorts    = to!int (args[2]);
+		extrasIsSpinnable = to!bool(args[3]);
+	}
+	catch(Throwable e)
+	{
+		writeln("Usage:");
+		writeln("  ex6_meta_flex2_frontend "~
+			"{bigPort} {extrasNumPorts} {extrasIsSpinnable}");
+		writeln("Example: ex6_meta_flex2_frontend 5 2 true");
+		return;
+	}
+	
+	// This is the content of the "ex6_meta_flex2_config.d" file to be generated.
+	auto configContent = `
+		immutable conf_bigPort           = `~to!string(bigPort)~`;
+		immutable conf_extrasNumPorts    = `~to!string(extrasNumPorts)~`;
+		immutable conf_extrasIsSpinnable = `~to!string(extrasIsSpinnable)~`;
+	`;
+	
+	// Load old configuration
+	writefln("Checking  \t%s...", configFile);
+	string oldContent;
+	if(exists(configFile))
+		oldContent = cast(string)std.file.read(configFile);
+
+	// Did the configuration change?
+	bool configChanged = false;
+	if(configContent != oldContent)
+	{
+		writefln("Saving  \t%s...", configFile);
+		std.file.write(configFile, configContent);
+		
+		configChanged = true;
+	}
+
+	// Need to recompile?
+	if(configChanged || !exists(mainProgram~exeSuffix))
+	{
+		writefln("Compiling  \t%s...", mainProgramSrc);
+		system("dmd "~mainProgramSrc~" -release -inline -O -J.");
+	}
+
+	// Run the main program
+	writefln("Running  \t%s...", mainProgram);
+	version(Windows)
+		system(mainProgram);
+	else
+		system("./"~mainProgram);
+}:]
+$]
+
+<p>
+And the main program, with changes from
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]
+highlighted:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex2_compilingAtRuntime.d | ex6_meta_flex2_compilingAtRuntime.d $],
+the main program:
+</p>
+[$code|highlight|
+[:+struct UltraGiz(int bigPort, int extrasNumPorts, bool extrasIsSpinnable)
+{
+	template gizmos(int numPorts, bool isSpinnable)
+	{
+		Gizmo!(numPorts, isSpinnable)[] gizmos;
+	}
+
+	int numTimesUsedSpinny;
+	int numTimesUsedTwoPort;
+
+	void useGizmo(T)(ref T gizmo)
+	{
+		gizmo.doStuff();
+		gizmo.spin();
+		
+		if(gizmo.isSpinnable)
+			numTimesUsedSpinny++;
+		
+		if(gizmo.numPorts == 2)
+			numTimesUsedTwoPort++;
+	}
+
+	void run()
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+
+		// Create gizmos
+		gizmos!(1, false).length = 10_000;
+		gizmos!(1, true ).length = 10_000;
+		gizmos!(2, false).length = 10_000;
++
++		// Use the template parameters extrasNumPorts and extrasIsSpinnable
++		// so 8,000 more of these will be made down below.
++		gizmos!(2, true ).length =  2_000;
++
++		gizmos!(bigPort, false).length =  5_000;
++		gizmos!(bigPort, true ).length =  5_000;
++		
++		// Add in the extra Gizmos
++		gizmos!(extrasNumPorts, extrasIsSpinnable).length += 8_000;
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		{
+			foreach(ref gizmo; gizmos!(1, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(1, true )) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, true )) useGizmo(gizmo);
++			foreach(ref gizmo; gizmos!(bigPort, false)) useGizmo(gizmo);
++			foreach(ref gizmo; gizmos!(bigPort, true )) useGizmo(gizmo);
+		}
+		
+		writeln(stopWatch.peek.msecs, "ms");
+	}
+}
+
+void main()
+{
++	mixin(import("ex6_meta_flex2_config.d"));
++
++	UltraGiz!(conf_bigPort, conf_extrasNumPorts, conf_extrasIsSpinnable) ultra;
+	ultra.run();
+	
+	// Compile time error: A portless Gizmo is useless!
+	//auto g = Gizmo!(0, true);
+}:]
+$]
+
+
+<a name="part6-3" />
+<h3>Method #3: Convert a Runtime Value to Compile-Time</h3>
+
+<p>
+Yes, you read that right. Though it may sound bizarre, like it would require
+time-travel, it is possible to convert a runtime value to compile-time.
+Although, it does have some restrictions:
+</p>
+
+<ol>
+<li>
+The runtime value can't cause anything to happen
+differently at compile-time. Which is to be expected, since runtime occurs
+after compile-time. 
+But the runtime value can "pass-through" the compile-time code paths
+and result in other runtime effects.
+</li>
+<li>
+Every possible value that the variable might hold must be individually handled.
+</li>
+</ol>
+
+<p>
+What essentially happens is you take
+all the compile-time code paths you may want to trigger at runtime, and you
+trigger <em>all</em> of them at compile-time. Each one of them will produce a result
+that can be accessed at runtime. Then, at runtime, you just
+"choose your effect".
+</p>
+
+<p>
+If you don't understand that, don't worry. It's really a much
+simpler, more obvious concept than it sounds. Here's a simple example:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/example_runtimeToCompileTime.d | example_runtimeToCompileTime.d $]:
+</p>
+[$code|highlight|
+[:import std.conv;
+import std.stdio;
+
+// Remember, this is a completely different type
+// for every value of compileTimeValue.
+class Foo(int compileTimeValue)
+{
+	static immutable theCompileTimeValue = compileTimeValue;
+	
+	static int count = 0;
+	this()
+	{
+		count++;
+	}
+	
+	static void display()
+	{
+		writefln("Foo!(%s).count == %s", theCompileTimeValue, count);
+	}
+}
+
+void main(string[] args)
+{
+	foreach(arg; args[1..$])
+	{
+		int runtimeValue = to!int(arg);
+
+		// Dispatch runtime value to compile-time
+		switch(runtimeValue)
+		{
+		// Note:
+		// case {runtime value}: new Foo!{equivalent compile time value}();
+		case  0: new Foo!0();  break;
+		case  1: new Foo!1();  break;
+		case  2: new Foo!2();  break;
+		case  3: new Foo!3();  break;
+		case 10: new Foo!10(); break;
+		case 99: new Foo!99(); break;
+		default:
+			throw new Exception(text("Value ",runtimeValue," not supported."));
+		}
+	}
+	
+	Foo!( 0).display();
+	Foo!( 1).display();
+	Foo!( 2).display();
+	Foo!( 3).display();
+	Foo!(10).display();
+	Foo!(99).display();
+}:]
+$]
+
+<p>
+Of course, given the repetition in there, metaprogramming
+can be used to automatically generate the code to handle
+large numbers of possible values. Or even the entire range of certain
+types, such as enum, bool, byte or maybe even a 16-bit value.
+A 32-bit value would be unrealistic on modern hardware, though.
+And arbitrary strings would be out of the question unless you limited them
+to a predetermined set of strings, or to a couple bytes in length
+(or more if you limited the allowable characters).
+But even with these limitations, this can still be a useful technique.
+</p>
+
+<p>
+In any case, the fact remains: With certain restrictions, it <em>is</em>
+possible to convert a runtime value into a compile-time value. Here's how
+it can be applied to our Gizmo example (as usual, changes from
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]
+are highlighted):
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex3_runtimeToCompileTime1.d | ex6_meta_flex3_runtimeToCompileTime1.d $]:
+</p>
+[$code|highlight|
+[:struct UltraGiz
+{
+	template gizmos(int numPorts, bool isSpinnable)
+	{
+		Gizmo!(numPorts, isSpinnable)[] gizmos;
+	}
+
+	int numTimesUsedSpinny;
+	int numTimesUsedTwoPort;
+
+	void useGizmo(T)(ref T gizmo)
+	{
+		gizmo.doStuff();
+		gizmo.spin();
+		
+		if(gizmo.isSpinnable)
+			numTimesUsedSpinny++;
+		
+		if(gizmo.numPorts == 2)
+			numTimesUsedTwoPort++;
+	}
+
++	// Note this is templated
++	void addGizmosTo(int numPorts, bool isSpinnable)(int numGizmos)
++	{
++		gizmos!(numPorts, isSpinnable).length += numGizmos;
++	}
++
++	void addGizmos(int numPorts, bool isSpinnable, int numGizmos)
++	{
++		// Dispatch to correct version of addGizmosTo.
++		// Effectively converts a runtime value to compile-time.
++		if(numPorts == 1)
++		{
++			if(isSpinnable)
++				addGizmosTo!(1, true )(numGizmos);
++			else
++				addGizmosTo!(1, false)(numGizmos);
++		}
++		else if(numPorts == 2)
++		{
++			if(isSpinnable)
++				addGizmosTo!(2, true )(numGizmos);
++			else
++				addGizmosTo!(2, false)(numGizmos);
++		}
++		else if(numPorts == 3)
++		{
++			if(isSpinnable)
++				addGizmosTo!(3, true )(numGizmos);
++			else
++				addGizmosTo!(3, false)(numGizmos);
++		}
++		else if(numPorts == 5)
++		{
++			if(isSpinnable)
++				addGizmosTo!(5, true )(numGizmos);
++			else
++				addGizmosTo!(5, false)(numGizmos);
++		}
++		else if(numPorts == 10)
++		{
++			if(isSpinnable)
++				addGizmosTo!(10, true )(numGizmos);
++			else
++				addGizmosTo!(10, false)(numGizmos);
++		}
++		else
++			throw new Exception(to!string(numPorts)~"-port Gizmo not supported.");
++	}
++		
++	void run(int bigPort)(int extrasNumPorts, bool extrasIsSpinnable)
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+
+		// Create gizmos
+		gizmos!(1, false).length = 10_000;
+		gizmos!(1, true ).length = 10_000;
+		gizmos!(2, false).length = 10_000;
++		
++		// Use the commandline parameters extrasNumPorts and extrasIsSpinnable
++		// so 8,000 more of these will be made down below.
++		gizmos!(2, true ).length = 2_000;
++		
++		gizmos!(bigPort, false).length = 5_000;
++		gizmos!(bigPort, true ).length = 5_000;
++		
++		// Add in the extra Gizmos
++		addGizmos(extrasNumPorts, extrasIsSpinnable, 8_000);
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		{
+			foreach(ref gizmo; gizmos!(1, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(1, true )) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, true )) useGizmo(gizmo);
++			foreach(ref gizmo; gizmos!(bigPort, false)) useGizmo(gizmo);
++			foreach(ref gizmo; gizmos!(bigPort, true )) useGizmo(gizmo);
+		}
+		
+		writeln(stopWatch.peek.msecs, "ms");
+	}
+}
+
++void main(string[] args)
+{
++	// Number of ports on each of the many-port Gizmos.
++	// Normally 5
++	int bigPort;
++	
++	// 8,000 extra Gizmos will be created with
++	// this many ports and this spinnability.
++	// Normally 2-port spinnable
++	int  extrasNumPorts;
++	bool extrasIsSpinnable;
++	
++	try
++	{
++		bigPort           = to!int (args[1]);
++		extrasNumPorts    = to!int (args[2]);
++		extrasIsSpinnable = to!bool(args[3]);
++		if(bigPort != 3 && bigPort != 5 && bigPort != 10)
++			throw new Exception("Invalid choice for bigPort");
++	}
++	catch(Throwable e)
++	{
++		writeln("Usage:");
++		writeln("  ex6_meta_flex3_runtimeToCompileTime1 "~
++			"{bigPort} {extrasNumPorts} {extrasIsSpinnable}");
++		writeln("bigPort must be 3, 5 or 10");
++		writeln("Example: ex6_meta_flex3_runtimeToCompileTime1 5 2 true");
++		return;
++	}
++	
+	UltraGiz ultra;
++	// Dispatch to correct version of UltraGiz.run.
++	// Effectively converts a runtime value to compile-time.
++	if(bigPort == 3)
++		ultra.run!3(extrasNumPorts, extrasIsSpinnable);
++	else if(bigPort == 5)
++		ultra.run!5(extrasNumPorts, extrasIsSpinnable);
++	else if(bigPort == 10)
++		ultra.run!10(extrasNumPorts, extrasIsSpinnable);
+	
+	// Compile time error: A portless Gizmo is useless!
+	//auto g = Gizmo!(0, true);
+}:]
+$]
+
+<p>
+That will work, but there's two potential problems with it.
+</p>
+
+<p>
+The first problem is that it involves extra runtime code.
+That could cut into, or possibly even eliminate, the efficiency savings from metaprogramming.
+However, the extra runtime code is only run once when setting up the Gizmos,
+not while the Gizmos are actually being used. So as long as the Gizmo usage
+is enough to overshadow the extra overhead, it should still be worth it.
+</p>
+
+<p>
+The second problem is that the [$code|inline|addGizmos()$] function
+is an incredibly repetitive mess of copy-pasted code. It's a total violation
+of DRY: Don't Repeat Yourself. Maintaining that function would be very
+error-prone. Fortunately, that's easily fixed with a preprocessor, macros,
+or in D's case, string mixins:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex3_runtimeToCompileTime2.d | ex6_meta_flex3_runtimeToCompileTime2.d $]:
+</p>
+[$code|highlight|
+[:	void addGizmos(int numPorts, bool isSpinnable, int numGizmos)
+	{
+		// Dispatch to correct version of addGizmosTo.
+		// Effectively converts a runtime value to compile-time.
++		
++		string dispatch(int[] numPortsArray)
++		{
++			auto str = "";
++			foreach(numPorts; numPortsArray)
++			{
++				auto numPortsStr = to!string(numPorts);
++				str ~= `
++					if(numPorts == `~numPortsStr~`)
++					{
++						if(isSpinnable)
++							addGizmosTo!(`~numPortsStr~`, true )(numGizmos);
++						else
++							addGizmosTo!(`~numPortsStr~`, false)(numGizmos);
++					}
++					else 
++				`;
++			}
++			
++			str ~=
++				`throw new Exception(
++					to!string(numPorts)~"-port Gizmo not supported."
++				);`;
++			
++			return str;
++		}
++		
++		mixin(dispatch( [1, 2, 3, 5, 10] ));
+	}:]
+$]
+
+<p>
+If you wish, you can see the generated code by simply outputting
+the result of [$code|inline|dispatch$]:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/snippet_outputGeneratedCode.d | snippet_outputGeneratedCode.d $]:
+</p>
+[$code|highlight|
+[:// In the UltraGiz.addGizmos() function of
+// 'ex6_meta_flex3_runtimeToCompileTime2.d',
+// see the generated code by replacing this:
+
+mixin(dispatch( [1, 2, 3, 5, 10] ));
+
+// With this:
+
+immutable code = dispatch( [1, 2, 3, 5, 10] );
+pragma(msg, "code:\n"~code); // Displayed at compile-time
+mixin(code);
+:]
+$]
+
+
+<a name="part6-4" />
+<h3>Method #4: Dynamic Fallback</h3>
+
+<p>
+Just like the town elder who made the handcrafted version, we can fallback on
+a dynamic version that uses runtime options instead of compile-time options.
+</p>
+
+<p>
+This is easier and more flexible than the previous method. In fact, method #1,
+compile-time function execution, is probably the only method that's easier than
+this, but this one is more powerful and supported by more languages.
+So this is a pretty good option.
+</p>
+
+<p>
+However, the downside is this would naturally be the least efficient of all
+the methods, since some of the Gizmos would forgo the metaprogramming benefits.
+But as long as you don't need runtime configurability for <em>all</em> your
+Gizmos, then you can still get a net savings over the original
+non-metaprogramming version.
+</p>
+
+<p>
+To do this, we'll use the same metaprogramming Gizmo we've been using for
+all the other methods in this section. But we'll also add a
+DynamicGizmo which is identical to the original Gizmo in
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex1_original.d | ex1_original.d $],
+just with a different name. Then, the
+UltraGiz will look like this (as usual, changes from
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]
+are highlighted):
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex4_dynamicFallback1.d | ex6_meta_flex4_dynamicFallback1.d $]:
+</p>
+[$code|highlight|
+[:struct UltraGiz
+{
++	template gizmos(T)
++	{
++		T[] gizmos;
++	}
++	
++	// Shortcut for non-dynamic gizmos, so we can still say:
++	//   gizmos!(2, true)
++	// instead of needing to use the more verbose:
++	//   gizmos!( Gizmos!(2, true) )
+	template gizmos(int numPorts, bool isSpinnable)
+	{
++		alias gizmos!( Gizmo!(numPorts, isSpinnable) ) gizmos;
+	}
+
+	int numTimesUsedSpinny;
+	int numTimesUsedTwoPort;
+
+	void useGizmo(T)(ref T gizmo)
+	{
+		gizmo.doStuff();
+		gizmo.spin();
+		
+		if(gizmo.isSpinnable)
+			numTimesUsedSpinny++;
+		
+		if(gizmo.numPorts == 2)
+			numTimesUsedTwoPort++;
+	}
+		
++	void run(int bigPort, int extrasNumPorts, bool extrasIsSpinnable)
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+
+		// Create gizmos
+		gizmos!(1, false).length = 10_000;
+		gizmos!(1, true ).length = 10_000;
+		gizmos!(2, false).length = 10_000;
++		
++		// Use the commandline parameters extrasNumPorts and extrasIsSpinnable
++		// so 8,000 more of these will be made down below as dynamic gizmos.
++		gizmos!(2, true ).length = 2_000;
++		
++		gizmos!(DynamicGizmo).length = 18_000;
++		foreach(i;       0..5_000)
++			gizmos!(DynamicGizmo)[i] = DynamicGizmo(bigPort, false);
++			
++		foreach(i;  5_000..10_000)
++			gizmos!(DynamicGizmo)[i] = DynamicGizmo(bigPort, true);
++			
++		foreach(i; 10_000..18_000)
++			gizmos!(DynamicGizmo)[i] = DynamicGizmo(extrasNumPorts, extrasIsSpinnable);
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		{
+			foreach(ref gizmo; gizmos!(1, false))   useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(1, true ))   useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, false))   useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, true ))   useGizmo(gizmo);
++			foreach(ref gizmo; gizmos!DynamicGizmo) useGizmo(gizmo);
+		}
+		
+		writeln(stopWatch.peek.msecs, "ms");
+	}
+}
+
++void main(string[] args)
+{
++	// Number of ports on each of the many-port Gizmos.
++	// Normally 5
++	int bigPort;
++	
++	// 8,000 extra Gizmos will be created with
++	// this many ports and this spinnability.
++	// Normally 2-port spinnable
++	int  extrasNumPorts;
++	bool extrasIsSpinnable;
++	
++	try
++	{
++		bigPort           = to!int (args[1]);
++		extrasNumPorts    = to!int (args[2]);
++		extrasIsSpinnable = to!bool(args[3]);
++	}
++	catch(Throwable e)
++	{
++		writeln("Usage:");
++		writeln("  ex6_meta_flex4_dynamicFallback1 "~
++			"{bigPort} {extrasNumPorts} {extrasIsSpinnable}");
++		writeln("Example: ex6_meta_flex4_dynamicFallback1 5 2 true");
++		return;
++	}
++	
+	UltraGiz ultra;
++	ultra.run(bigPort, extrasNumPorts, extrasIsSpinnable);
+	
+	// Compile time error: A portless Gizmo is useless!
++	//auto g1 = Gizmo!(0, true);
++	
++	// Runtime error: A portless Gizmo is useless!
++	//auto g2 = DynamicGizmo(0, true);
+}:]
+$]
+
+<p>
+The original Gizmo with the runtime options, ie DynamicGizmo,
+is used where necessary,
+while the more common cases are optimized with metaprogramming techniques.
+Not a bad compromise.
+</p>
+
+<p>
+As you can see in the full code listing for 
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex4_dynamicFallback1.d | ex6_meta_flex4_dynamicFallback1.d $],
+I opted to make a completely separate
+definition for the dynamic version of Gizmo; that is, the DynamicGizmo.
+It would have also been possible to use a single definition for both the
+metaprogramming Gizmo and the DynamicGizmo. To do that, you'd just need to add
+another compile-time parameter, say [$code|inline|bool dynamicGizmo$], to go
+along with [$code|inline|numPorts$] and [$code|inline|isSpinnable$]. Doing so
+would probably be a good idea if only part of your struct is affected
+by the change from runtime options to compile-time options. But with Gizmo,
+the metaprogramming version converted practically everything to compile-time
+options, so in this case it was a little cleaner to just leave DynamicGizmo
+defined separately.
+</p>
+
+<p>
+One other notable change I made was to the [$code|inline|gizmos$] template (Ie,
+the arrays that had been named [$code|inline|gizmosA$], [$code|inline|gizmosB$],
+etc. in the earlier handcrafted version.) In all the other metaprogramming
+versions, [$code|inline|gizmos$] had been templated on number of ports
+and spinnability. That worked fine, but now we have [$code|inline|DynamicGizmo$]
+which doesn't really fit into that. So now [$code|inline|gizmos$] is templated
+on the Gizmo's type so the dynamic Gizmos can be accessed with
+[$code|inline|gizmos!(DynamicGizmo)$].
+Unfortunately, that also means the nice simple:
+</p>
+
+[$code|highlight|
+[:gizmos!(2, true):]
+$]
+
+<p>
+Becomes the ugly:
+</p>
+
+[$code|highlight|
+[:gizmos!( Gizmos!(2, true) ):]
+$]
+
+<p>
+So I created an overload of the [$code|inline|gizmos$] template which
+maps the nice simple old syntax to the new one.
+</p>
+
+<p>
+As an extra benefit, templating [$code|inline|gizmos$] on type makes it easy
+to clean up all those repetitive [$code|inline|foreach$] statements in
+[$code|inline|UltraGiz.run()$]:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex4_dynamicFallback2.d | ex6_meta_flex4_dynamicFallback2.d $]:
+</p>
+[$code|highlight|
+[:	void run(int bigPort, int extrasNumPorts, bool extrasIsSpinnable)
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+
+		// Create gizmos
+		gizmos!(1, false).length = 10_000;
+		gizmos!(1, true ).length = 10_000;
+		gizmos!(2, false).length = 10_000;
+		
+		// Use the commandline parameters extrasNumPorts and extrasIsSpinnable
+		// so 8,000 more of these will be made down below as dynamic gizmos.
+		gizmos!(2, true ).length = 2_000;
+		
+		gizmos!(DynamicGizmo).length = 18_000;
+		foreach(i;       0..5_000)
+			gizmos!(DynamicGizmo)[i] = DynamicGizmo(bigPort, false);
+			
+		foreach(i;  5_000..10_000)
+			gizmos!(DynamicGizmo)[i] = DynamicGizmo(bigPort, true);
+			
+		foreach(i; 10_000..18_000)
+			gizmos!(DynamicGizmo)[i] = DynamicGizmo(extrasNumPorts, extrasIsSpinnable);
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		{
++			// Think of this as an array of types:
++			alias TypeTuple!(
++				Gizmo!(1, false),
++				Gizmo!(1, true ),
++				Gizmo!(2, false),
++				Gizmo!(2, true ),
++				DynamicGizmo,
++			) AllGizmoTypes;
++			
++			foreach(T; AllGizmoTypes)
++			foreach(ref gizmo; gizmos!T)
++				useGizmo(gizmo);
+		}
+		
+		writeln(stopWatch.peek.msecs, "ms");
+	}:]
+$]
+
+
+<a name="part7" />
+<h2>The Last Remaining Elephant In The Room: Runtime Conversion</h2>
+
+<p>
+Don't worry, I'm not really going to introduce an elephant into the story...
+</p>
+
+<p>
+We've already seen various ways of configuring a compile-time option
+at runtime. But that was limited to <em>creating</em> a Gizmo. Once created,
+a Gizmo was stuck with those settings. So what if the number of ports and
+spinnablity of an existing Gizmo needs to change? If only a few Gizmos
+need to be able to change, we can just make those few out of the
+[$code|inline|DynamicGizmo$] from earlier with only trivial modifications.
+But suppose all the Gizmos need to be changeable: Now how do we change the
+settings of an existing Gizmo without giving up the metaprogramming benefits?
+</p>
+
+<p>
+In our original example, it would have been trivial to modify the Gizmo code
+so you could change a Gizmo's number of ports and spinnablity after it was
+created. They were already runtime values.
+But our metaprogramming examples have taken advantage of the fact that such
+values were fixed when a Gizmo is created. In fact, that's the fundamental
+key of the metaprogramming versions: "Turn your runtime options into
+compile-time options."
+</p>
+
+<p>
+If one of these settings needs to change <em>frequently</em> during a
+program's run, then naturally it must be a runtime option. Turning it into
+a compile-time value won't improve its efficiency. That's because the
+"runtime to compile-time" trick works by taking advantage of the fact that
+certain values don't <em>really</em> need to change.
+So unfortunately, if a setting needs to change frequently, it must remain
+a runtime value. The only way to optimize it out is to eliminate the feature
+entirely.
+</p>
+
+<p>
+However, if the settings only need to change occasionally, then we're
+still in business.
+</p>
+
+<p>
+"What? Have you <em>completely</em> lost it? Configuring a compile-time option
+at runtime was crazy enough. And now you intend to <em>change</em> a compile-time
+option at runtime?! They're immutable!"
+</p>
+
+<p>
+It not so strange, really. In fact, functional programming experts probably
+already know where I'm going with this...
+</p>
+
+<p>
+Listen carefully: We converted the
+runtime values to compile-time ones by encoding them as part of the type,
+right? So to change the compile-time value, all we have to do is convert
+the variable to a different type. Just like converting an integer to a string.
+Easy. Except this is even easier because the types we're converting are
+fundamentally very similar.
+</p>
+
+<p>
+Naturally, this does take extra processing. Likely much more than just simply
+changing an ordinary runtime variable. That's why I made a big deal about
+how frequently you need the value to change. If it changes a lot, you'll just slow
+things down from all the converting. But as long as it doesn't change enough to
+use up the efficiency savings from metaprogramming, you'll still end up ahead.
+</p>
+
+<p>
+I'll demonstrate this by shuffling around a few Gizmos
+on every iteration. You'll notice that I'm always keeping the same number
+of each type of Gizmo, but that's not a real limitation: That's only so we can still compare benchmarks.
+It would be trivial to actually change a Gizmo without keeping everything
+balanced. All you'd have to do is remove the old Gizmo from the array for the old type,
+and append the newly converted one to the array for the new type. Of course, if you were to
+do this, you'd probably want to use a linked list or a stack instead of an
+array, since arrays have poor performance with such a usage pattern.
+</p>
+
+<p>
+For simplicity, I won't use any of the "Flexibility Enhancements"
+covered in the previous section. But the techniques can certainly still
+be combined.
+</p>
+
+<p>
+I've highlighted the changes from the original metaprogramming version,
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex7_meta_runtimeConversion.d | ex7_meta_runtimeConversion.d $]:
+</p>
+[$code|highlight|
+[:struct Gizmo(int _numPorts, bool _isSpinnable)
+{
+	// So other generic code can determine the
+	// number of ports and spinnability:
+	static immutable numPorts    = _numPorts;
+	static immutable isSpinnable = _isSpinnable;
+
+	static if(numPorts < 1)
+		static assert(false, "A portless Gizmo is useless!");
+
+	private OutputPort[numPorts] ports;
+	void doStuff()
+	{
+		static if(numPorts == 1)
+			ports[0].zap();
+		else static if(numPorts == 2)
+		{
+			ports[0].zap();
+			ports[1].zap();
+		}
+		else
+		{
+			foreach(port; ports)
+				port.zap();
+		}
+	}
+
+	static if(isSpinnable)
+		int spinCount;
+
+	void spin()
+	{
+		static if(isSpinnable)
+			spinCount++; // Spinning! Wheeee!
+	}
++
++	TOut convertTo(TOut)()
++	{
++		TOut newGizmo;
++		
++		static if(isSpinnable && TOut.isSpinnable)
++			newGizmo.spinCount = this.spinCount;
++		
++		int portsToCopy = min(newGizmo.numPorts, this.numPorts);
++		newGizmo.ports[0..portsToCopy] = this.ports[0..portsToCopy];
++		
++		// If there were any other data, we'd copy it to the newGizmo here
++		
++		return newGizmo;
++	}
+}
+
+struct OutputPort
+{
+	int numZaps;
+	void zap()
+	{
+		numZaps++;
+	}
+}
+
+struct UltraGiz
+{
+	template gizmos(int numPorts, bool isSpinnable)
+	{
+		Gizmo!(numPorts, isSpinnable)[] gizmos;
+	}
+
+	int numTimesUsedSpinny;
+	int numTimesUsedTwoPort;
+
+	void useGizmo(T)(ref T gizmo)
+	{
+		gizmo.doStuff();
+		gizmo.spin();
+		
+		if(gizmo.isSpinnable)
+			numTimesUsedSpinny++;
+		
+		if(gizmo.numPorts == 2)
+			numTimesUsedTwoPort++;
+	}
+
+	void run()
+	{
+		StopWatch stopWatch;
+		stopWatch.start();
+
+		// Create gizmos
+		gizmos!(1, false).length = 10_000;
+		gizmos!(1, true ).length = 10_000;
+		gizmos!(2, false).length = 10_000;
+		gizmos!(2, true ).length = 10_000;
+		gizmos!(5, false).length =  5_000;
+		gizmos!(5, true ).length =  5_000;
+		
+		// Use gizmos
+		foreach(i; 0..10_000)
+		{
++			// Modify some gimos:
++			// Save a 1-port non-spinny
++			auto old1PortNoSpin = gizmos!(1, false)[i];
++			
++			// Convert a 2-port spinny to 1-port non-spinny
++			gizmos!(1, false)[i] =
++				gizmos!(2, true)[i].convertTo!( Gizmo!(1, false) )();
++
++			// Convert a 5-port spinny to 2-port spinny
++			gizmos!(2, true)[i] =
++				gizmos!(5, true)[i%2].convertTo!( Gizmo!(2, true) )();
++			
++			// Convert the old 1-port non-spinny to 5-port spinny
++			gizmos!(5, true)[i%2] =
++				old1PortNoSpin.convertTo!( Gizmo!(5, true) )();
++			
++			// Use gizmos as usual
+			foreach(ref gizmo; gizmos!(1, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(1, true )) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(2, true )) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(5, false)) useGizmo(gizmo);
+			foreach(ref gizmo; gizmos!(5, true )) useGizmo(gizmo);
+		}
+		
+		writeln(stopWatch.peek.msecs, "ms");
+
+		assert(numTimesUsedSpinny  == 25_000 * 10_000);
+		assert(numTimesUsedTwoPort == 20_000 * 10_000);
+	}
+}:]
+$]
+
+
+<a name="part7-1" />
+<h3>Conversion Downsides And Possible Fixes</h3>
+
+<p>
+There are a couple downsides to the runtime conversions above.
+But, they can be dealt with.
+</p>
+
+
+<a name="part7-1-1" />
+<h4>Hold It, Gizmo! Quit Squirming Around!</h4>
+
+<p>
+One issue with converting a Gizmo is that doing so puts it in a different memory location.
+This means that if anything was keeping a reference to the Gizmo, after conversion
+the reference is no longer pointing to the newly converted Gizmo. It's still
+referring to the old location.
+</p>
+
+<p>
+This may not always be an issue. But if it does matter, you can solve it by
+using a tagged union. Something like this:
+</p>
+
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/example_anyGizmo.d | example_anyGizmo.d $]:
+</p>
+[$code|highlight|
+[:import std.stdio;
+
+struct Gizmo(int _numPorts, bool _isSpinnable)
+{
+	// So other generic code can determine the
+	// number of ports and spinnability:
+	static immutable numPorts    = _numPorts;
+	static immutable isSpinnable = _isSpinnable;
+	
+	// The rest here...
+}
+
+struct AnyGizmo
+{
+	TypeInfo currentType;
+	GizmoUnion gizmoUnion;
+
+	union GizmoUnion
+	{
+		Gizmo!(1, false) gizmo1NS;
+		Gizmo!(1, true ) gizmo1S;
+		Gizmo!(2, false) gizmo2NS;	
+		Gizmo!(2, true ) gizmo2S;
+		Gizmo!(5, false) gizmo5NS;
+		Gizmo!(5, true ) gizmo5S;
+	}
+
+	void set(T)(T value)
+	{
+		static if(is(T==Gizmo!(1, false)))
+			gizmoUnion.gizmo1NS = value;
+
+		else static if(is(T==Gizmo!(1, true)))
+			gizmoUnion.gizmo1S = value;
+
+		else static if(is(T==Gizmo!(2, false)))
+			gizmoUnion.gizmo2NS = value;
+
+		else static if(is(T==Gizmo!(2, true)))
+			gizmoUnion.gizmo2S = value;
+
+		else static if(is(T==Gizmo!(5, false)))
+			gizmoUnion.gizmo5NS = value;
+
+		else static if(is(T==Gizmo!(5, true)))
+			gizmoUnion.gizmo5S = value;
+		
+		currentType = typeid(T);
+	}
+}
+
+void useGizmo(T)(T gizmo)
+{
+	writeln("Using a gizmo:");
+	writeln("  ports=", gizmo.numPorts);
+	writeln("  isSpinnable=", gizmo.isSpinnable);
+}
+
+void main()
+{
+	AnyGizmo anyGizmo;
+	anyGizmo.set( Gizmo!(2, true)() );
+	
+	if( anyGizmo.currentType == typeid(Gizmo!(1, false)) )
+		useGizmo( anyGizmo.gizmoUnion.gizmo1NS );
+		
+	else if( anyGizmo.currentType == typeid(Gizmo!(1, true)) )
+		useGizmo( anyGizmo.gizmoUnion.gizmo1S );
+		
+	else if( anyGizmo.currentType == typeid(Gizmo!(2, false)) )
+		useGizmo( anyGizmo.gizmoUnion.gizmo2NS );
+		
+	else if( anyGizmo.currentType == typeid(Gizmo!(2, true)) )
+		useGizmo( anyGizmo.gizmoUnion.gizmo2S );
+		
+	else if( anyGizmo.currentType == typeid(Gizmo!(5, false)) )
+		useGizmo( anyGizmo.gizmoUnion.gizmo5NS );
+		
+	else if( anyGizmo.currentType == typeid(Gizmo!(5, true)) )
+		useGizmo( anyGizmo.gizmoUnion.gizmo5S );
+
+	else
+		throw new Exception("Unexpected type");
+}:]
+$]
+
+<p>
+As you see in [$code|inline|main()$] above, before you use an AnyGizmo,
+you first check the type via [$code|inline|currentType$]
+and then use the appropriate member of [$code|inline|gizmoUnion$].
+This does have a few gotchas, though:
+</p>
+
+<p>
+First, you have the runtime cost of checking the type before using the Gizmo.
+But this may be minimal, since you won't usually need to check the type
+on every single member access, only when it might have changed.
+</p>
+
+<p>
+Second, since a union must be the size of its largest
+member, you won't get as much space savings when using an AnyGizmo.
+But, if the mere existence of one of your optional features requires extra
+time-consuming processing, you can at least save time because any Gizmos that
+forgo that feature won't incur the extra cost. Plus, this issue will only
+affect an AnyGizmo, not any other Gizmos you may have in use.
+</p>
+
+<p>
+The final gotcha is that this makes converting a Gizmo more costly since the newly
+converted Gizmo needs to be copied back to the memory location of the original
+Gizmo. But if the Gizmo only needs to be converted occasionally,
+this shouldn't be a problem. If it is a problem, though, it may be
+possible to do the conversion in-place in memory.
+</p>
+
+
+<a name="part7-1-2" />
+<h4>Hey Data, Get Back Here!</h4>
+
+<p>
+The other main issue with converting Gizmos is that some conversions
+can loose data. Suppose we convert a 
+spinny Gizmo to a non-spinny and back again. The non-spinny Gizmos don't
+have a [$code|inline|spinCount$], so our newly re-spinified Gizmo has lost
+its original [$code|inline|spinCount$] data. It's back at zero again.
+Same thing with the ports:
+Convert a 5-port to a 2-port and back again and you've lost the
+[$code|inline|numZaps$] from the last three ports.
+</p>
+
+<p>
+Sometimes that might matter, sometimes it might not. Or it might matter for
+only some pieces of data. In any case, there's an easy fix: just make sure
+every Gizmo type has the data you don't want to loose. Even if a certain
+type of Gizmo doesn't actually use that data, let the Gizmo hold on to that
+data anyway.
+</p>
+
+<p>
+If you need to hold on to <em>all</em> the data, then as with the AnyGizmo above,
+each Gizmo type will take up as much space as the largest Gizmo.
+In fact, in such a case, using the AnyGizmo above may be a good idea.
+Except this time, the performance cost of doing conversions can be almost
+completely eliminated.
+</p>
+
+<p>
+How? Suppose every type of Gizmo does need to hold all the possible Gizmo data,
+and you use AnyGizmo.
+In that case, if you arrange all the data members of all the Gizmo types
+so everything is always laid out in memory the same way, then to convert the
+AnyGizmo from one type to another, all you need to do is change the
+[$code|inline|currentType$] member. That's it. Everything else will already be
+in the right place.
+</p>
+
+<p>
+At this point, it might sound like we've merely re-invented the DynamicGizmo.
+While it is similar, there are two important differences:
+</p>
+
+<p>
+First, this method allows us to have completely different functions for each
+Gizmo type.
+Each type can have a different set of functions, and each function
+can be specially-tailored to the features that Gizmo is supposed to
+support. So the Gizmos don't have to spend any extra processing time dealing
+with being flexible (for instance, by checking their own
+[$code|inline|isSpinnable$] variables to see whether or not to actually spin).
+Essentially, we have a form of polymorphism.
+In fact, if a DynamicGizmo isn't included in the AnyGizmo, then there can
+still be a space savings over DynamicGizmo because variables like
+[$code|inline|isSpinnable$] still won't need to exist at runtime at all.
+</p>
+
+<p>
+Second, if we want to change multiple settings on a Gizmo, we only need
+to actually modify one value: the value of [$code|inline|currentType$].
+</p>
+
+
+<a name="part8" />
+<h2>Curtain Call</h2>
+
+<p>
+Although the examples throughout this article have focused on situations
+with large numbers of simplistic objects, these techniques can also work
+very well with smaller numbers of objects that do a lot of processing.
+The templated versions of UltraGiz give just a small glimpse of this.
+</p>
+
+<p>
+We've seen that you can use metaprogramming with structs to achieve
+much of the same flexibility as classes while avoiding the class overhead.
+But even if you do go with classes, these metaprogramming techniques
+can still aid in optimization without forcing you to cut features
+and give up flexibility.
+</p>
+
+<p>
+Ok, so towards the end we did start running into more tension
+between efficiency and flexibility. Perhaps those wacky nuts will never
+fully resolve their differences. But even so, they've made some major progress.
+</p>
+
+<p>
+Whenever you have values or settings that don't need to change,
+you <em>don't</em> have to choose between eliminating them for efficiency
+and keeping them for flexibility. You can have both, with no compromise.
+And even if your values and settings do need to change, but
+just not constantly, you still have many options available
+for getting
+your efficiency and flexibility to cohabitate peacefully. So go ahead,
+use metaprogramming to have your efficiency, and flexibility too.
+</p>
+
+<p style="font-style: italic">
+Thanks to Lars T. Kyllingstad, bearophile and Timon Gehr for their
+suggestions.
+</p>
