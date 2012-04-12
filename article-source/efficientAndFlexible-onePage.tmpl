@@ -262,8 +262,8 @@ $]
 
 <p>
 On my 1.7 Ghz Celeron (Yes, I know that's old, please don't flame me!),
-compiling with DMD in release mode with optimizations and inlining on, my
-result is 21 seconds. My system's task manager tells me it used
+compiling with DMD v2.053 in release mode with optimizations and inlining on,
+my result is 21 seconds. My system's task manager tells me it used
 10.4 MB of RAM. Hmm, even on my old hardware, that could really be better.
 </p>
 
@@ -691,7 +691,21 @@ general-purpose multi-port jobs. Let's take 'er for a...ahem...a spin...
 <p>
 On my system, that clocks in at 10.5 seconds and 9.4 MB. Hey, not bad!
 That's definitely an improvement over the original.
-It's twice as fast, and uses about 10% less memory.
+It's twice as fast, and uses about 10% less memory. Those memory savings are
+even better than they sound because the measurements include process and
+runtime overhead. If we had 10x or 100x as many Gizmos, the memory savings
+would be more than 10%.
+</p>
+
+<p>
+Note that these Gizmos never spend time checking whether or not they're
+spinny. They just spin or they don't. For the one and two porters, there's
+no for loop when port-zapping, so no time is spent updating and checking an
+iteration variable. Additionally, the variables [$code|inline|spinCount$]
+and [$code|inline|ports$] only exist for Gizmos that actually need them -
+they don't take up space in other Gizmos. The [$code|inline|isSpinny$]
+variable was even eliminated outright. All these tweaks add up to some
+real savings.
 </p>
 
 <p>
@@ -871,7 +885,7 @@ Flexibility smiles.
 </p>
 
 <p>
-The code to test this is still very similar to all the other versions.
+The code to test this is still very similar to the other versions.
 But since this is the first metaprogramming version, I'll show the new
 Gizmo-testing code here:
 </p>
@@ -957,16 +971,15 @@ $]
 <p>
 One of the important things to note here is that the function [$code|inline|useGizmo()$]
 is templated to accept any type. This is necessary since there are multiple
-Gizmo types instead of just one, and also because the Gizmos are structs
-instead of classes and therefore don't have a common base type.
-So effectively, there is now a separate [$code|inline|useGizmo()$] function for each
+Gizmo types instead of just one. So effectively, there is now a
+separate [$code|inline|useGizmo()$] function for each
 Gizmo type (although a smart linker might combine identical versions
 of [$code|inline|useGizmo()$] behind-the-scenes). In the next section, I'll get back to
 the matter of this function being templated, but for now, just take note of it.
 </p>
 
 <p>
-Also, note that the arrays [$code|inline|gizmosA$], [$code|inline|gizmosB$],
+Also, the arrays [$code|inline|gizmosA$], [$code|inline|gizmosB$],
 etc. were replaced by a templated array. This is just like the separate arrays
 from [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex3_handcrafted.d | ex3_handcrafted.d $],
 but it gives us a better way to refer to them. For example, we now say
@@ -995,26 +1008,27 @@ handcrafting automatically as needed.
 Remember, in the real handcrafted version, the town elder only
 handcrafted one-port and two-port versions. For everything else, he
 had to fallback to the original strategy of dealing with a variable
-number of ports at runtime. With the metaprogramming version, on the
+number of ports at runtime. With the metaprogramming version on the
 other hand, the compiler automatically "handcrafted" a special five-port
 version when we asked for five ports. If we had also asked for three-port
 and seven-port versions, it would have automatically "handcrafted" those
 as well. It's possible to create and maintain all those special version
-manually, but it would be  highly impractical.
+manually, but it would be <em>very</em> impractical.
 </p>
 
 <p>
-If you really do want a single type for general multi-port Gizmos, just
+If you really do want a single type for general multi-port Gizmos just
 like the town elder's handcrafted version, that's certainly possible
 with metaprogramming, too. In fact, we'll get to that later.
 </p>
 
 <p>
 Of course, I don't mean to imply that handcrafted optimization is obsolete.
-There are always optimizations a compiler won't be able to do. But when your
+There are always optimizations a compiler can't do. But when your
 optimization involves creating alternate versions of the same thing,
 metaprogramming makes it quick and easy to apply the same technique on
-as many different versions as you want without hindering maintainability.
+as many different versions as you want without significantly hindering
+maintainability.
 </p>
 
 <p>
@@ -1029,11 +1043,11 @@ one other enhancement I'd like to cover first:
 
 <p>
 Duck typing is a topic that divides programmers almost as much as
-tabs-vs-spaces or vi-vs-emacs. While I admit I'm personally on the
+"tabs vs spaces" or "vi vs emacs". While I admit I'm personally on the
 anti-duck side of the pond, I'm not going to preach it here. I only
 bring it up because there are other anti-duckers out there, and
 for them, there's something about the metaprogramming example
-they may not be happy with. But there is a solution. If you are a duck fan,
+they may not be happy with - but there is a solution. If you are a duck fan,
 please pardon this section's title and feel free to skip ahead.
 I promise not to say anything about you behind your back...
 </p>
@@ -1240,7 +1254,7 @@ work because the boat dock hasn't been declared to implement the
 [$code|inline|IGizmo$] interface. Instead, you'll just get a compiler error
 saying there's no [$code|inline|useGizmo()$] overload that can accept
 a boat dock. As an extra bonus, if you change Gizmo and accidentally break
-it's [$code|inline|IGizmo$] interface (for instance, by deleting the
+its [$code|inline|IGizmo$] interface (for instance, by deleting the
 [$code|inline|doStuff()$] function), you'll get a better error message
 than before. Best of all, these changes have no impact on speed or memory
 since it all happens at compile-time.
