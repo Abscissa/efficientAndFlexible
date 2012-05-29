@@ -1425,7 +1425,8 @@ Stay tuned for the thrilling conclusion!
 <h2>Metaprogramming Plus: The Flexibility Enhancements</h2>
 
 <p>
-If you recall from earlier, Flexibility was concerned that the metaprogramming
+Picking up right where we left off in part 1, you may recall
+Flexibility was concerned that the metaprogramming
 approach seemed to prevent complex configurability. He didn't think he could use
 complex logic to decide what types of Gizmos needed to be made and how many.
 The problem is that Gizmo's settings are specified at compile-time,
@@ -1481,9 +1482,7 @@ situations.
 All that needs to be done is assign the return value of a function
 to a compile-time value. The compiler will execute the function itself
 (if it can) instead of waiting until runtime. Simple.
-Changes from
-[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]
-are highlighted:
+This version is is shown in [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex1_ctfe.d | ex6_meta_flex1_ctfe.d $].
 </p>
 
 <p class="figure-title">
@@ -1594,8 +1593,8 @@ $]
 On the downside, this method takes extra time (potentially very noticeable)
 whenever a setting needs to be changed. That may or may not be a problem
 depending on the nature of the program and the setting.
-Also, you'll need to distribute your configurable source code along with
-your program. Finally, this method requires either: 
+Additionally, you'll need to distribute your configurable source code along
+with your program. Finally, this method requires either: 
 </p>
 
 <ol>
@@ -1608,12 +1607,14 @@ You package the compiler along with your application.
 </ol>
 
 <p>
-Note that rules out using this method for most embedded targets.
+Note that rules out using this method for most embedded targets unless you
+set up a compilation server. But that comes with its own set of concerns.
 </p>
 
 <p>
-So ok, maybe this doesn't sound very good so far. However, this method is 
-extremely powerful, viable for a wide variety of languages, and only requires
+So ok, maybe this doesn't sound very good so far. But there are fairly major
+benefits: This method is extremely powerful,
+viable for a wide variety of languages, and only requires
 very simple changes to the code being configured. Additionally,
 the compiler requirement may not be as much of a problem as it may seem
 if you have permission to redistribute the compiler,
@@ -1634,8 +1635,8 @@ it all in one program: After your program issues the command to recompile
 itself, it would then relaunch itself (possibly saving and restoring any
 important state in the process) much like auto-updating programs that
 download and launch newer versions of themselves would do. Or, you could
-keep the configurable routines in a DLL or .so, unload the DLL or .so, recompile it,
-and then reload it.
+keep the configurable routines in a dynamic library, unload the dynamic library,
+recompile it, and then reload it.
 </p>
 
 <p class="figure-title">
@@ -1724,9 +1725,7 @@ void main(string[] args)
 $]
 
 <p>
-And the main program, with changes from
-[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]
-highlighted:
+And the main program:
 </p>
 
 <p class="figure-title">
@@ -1734,64 +1733,7 @@ From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_met
 the main program:
 </p>
 [$code|highlight|
-[:+struct UltraGiz(int bigPort, int extrasNumPorts, bool extrasIsSpinnable)
-{
-	template gizmos(int numPorts, bool isSpinnable)
-	{
-		Gizmo!(numPorts, isSpinnable)[] gizmos;
-	}
-
-	int numTimesUsedSpinny;
-	int numTimesUsedTwoPort;
-
-	void useGizmo(T)(ref T gizmo)
-	{
-		gizmo.doStuff();
-		gizmo.spin();
-		
-		if(gizmo.isSpinnable)
-			numTimesUsedSpinny++;
-		
-		if(gizmo.numPorts == 2)
-			numTimesUsedTwoPort++;
-	}
-
-	void run()
-	{
-		StopWatch stopWatch;
-		stopWatch.start();
-
-		// Create gizmos
-		gizmos!(1, false).length = 10_000;
-		gizmos!(1, true ).length = 10_000;
-		gizmos!(2, false).length = 10_000;
-+
-+		// Use the template parameters extrasNumPorts and extrasIsSpinnable
-+		// so 8,000 more of these will be made down below.
-+		gizmos!(2, true ).length =  2_000;
-+
-+		gizmos!(bigPort, false).length =  5_000;
-+		gizmos!(bigPort, true ).length =  5_000;
-+		
-+		// Add in the extra Gizmos
-+		gizmos!(extrasNumPorts, extrasIsSpinnable).length += 8_000;
-		
-		// Use gizmos
-		foreach(i; 0..10_000)
-		{
-			foreach(ref gizmo; gizmos!(1, false)) useGizmo(gizmo);
-			foreach(ref gizmo; gizmos!(1, true )) useGizmo(gizmo);
-			foreach(ref gizmo; gizmos!(2, false)) useGizmo(gizmo);
-			foreach(ref gizmo; gizmos!(2, true )) useGizmo(gizmo);
-+			foreach(ref gizmo; gizmos!(bigPort, false)) useGizmo(gizmo);
-+			foreach(ref gizmo; gizmos!(bigPort, true )) useGizmo(gizmo);
-		}
-		
-		writeln(stopWatch.peek.msecs, "ms");
-	}
-}
-
-void main()
+[:void main()
 {
 +	mixin(import("ex6_meta_flex2_config.d"));
 +
@@ -1803,14 +1745,31 @@ void main()
 }:]
 $]
 
+<p>
+The actual definition of the UltraGiz is exactly the same as in method #1,
+but without all the [$code|inline|generate*()$] functions, and the
+signature changed from:
+</p>
+
+[$code|highlight|
+[:struct UltraGiz:]
+$]
+
+<p>
+to:
+</p>
+
+[$code|highlight|
+[:struct UltraGiz(int bigPort, int extrasNumPorts, bool extrasIsSpinnable):]
+$]
 
 <a name="part6-3" />
 <h3>Method #3: Convert a Runtime Value to Compile-Time</h3>
 
 <p>
-Yes, you read that right. Though it may sound bizarre, like it would require
+Yes, you read that right. Though it may sound bizarre, as if it would require
 time-travel, it is possible to convert a runtime value to compile-time.
-Although, it does have some restrictions:
+It does have some restrictions:
 </p>
 
 <ol>
@@ -1835,8 +1794,8 @@ that can be accessed at runtime. Then, at runtime, you just
 </p>
 
 <p>
-If you don't understand that, don't worry. It's really a much
-simpler, more obvious concept than it sounds. Here's a simple example:
+If that sounds confusing, don't worry. It's really much more straightforward
+than it sounds. Here's a simple example:
 </p>
 
 <p class="figure-title">
@@ -1910,9 +1869,7 @@ But even with these limitations, this can still be a useful technique.
 <p>
 In any case, the fact remains: With certain restrictions, it <em>is</em>
 possible to convert a runtime value into a compile-time value. Here's how
-it can be applied to our Gizmo example (as usual, changes from
-[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]
-are highlighted):
+it can be applied to our Gizmo example:
 </p>
 
 <p class="figure-title">
@@ -1921,25 +1878,7 @@ From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_met
 [$code|highlight|
 [:struct UltraGiz
 {
-	template gizmos(int numPorts, bool isSpinnable)
-	{
-		Gizmo!(numPorts, isSpinnable)[] gizmos;
-	}
-
-	int numTimesUsedSpinny;
-	int numTimesUsedTwoPort;
-
-	void useGizmo(T)(ref T gizmo)
-	{
-		gizmo.doStuff();
-		gizmo.spin();
-		
-		if(gizmo.isSpinnable)
-			numTimesUsedSpinny++;
-		
-		if(gizmo.numPorts == 2)
-			numTimesUsedTwoPort++;
-	}
+	[Omitting other members for brevity. They're the same as before.]
 
 +	// Note this is templated
 +	void addGizmosTo(int numPorts, bool isSpinnable)(int numGizmos)
@@ -1965,27 +1904,7 @@ From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_met
 +			else
 +				addGizmosTo!(2, false)(numGizmos);
 +		}
-+		else if(numPorts == 3)
-+		{
-+			if(isSpinnable)
-+				addGizmosTo!(3, true )(numGizmos);
-+			else
-+				addGizmosTo!(3, false)(numGizmos);
-+		}
-+		else if(numPorts == 5)
-+		{
-+			if(isSpinnable)
-+				addGizmosTo!(5, true )(numGizmos);
-+			else
-+				addGizmosTo!(5, false)(numGizmos);
-+		}
-+		else if(numPorts == 10)
-+		{
-+			if(isSpinnable)
-+				addGizmosTo!(10, true )(numGizmos);
-+			else
-+				addGizmosTo!(10, false)(numGizmos);
-+		}
++		[Same code repeated here for values 3, 5 and 10.]
 +		else
 +			throw new Exception(to!string(numPorts)~"-port Gizmo not supported.");
 +	}
@@ -2087,69 +2006,32 @@ The second problem is that the [$code|inline|addGizmos()$] function
 is an incredibly repetitive mess of copy-pasted code. It's a total violation
 of DRY: Don't Repeat Yourself. Maintaining that function would be very
 error-prone. Fortunately, that's easily fixed with a preprocessor, macros,
-or in D's case, string mixins:
+or in D's case, a compile-time foreach:
 </p>
 
 <p class="figure-title">
 From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex3_runtimeToCompileTime2.d | ex6_meta_flex3_runtimeToCompileTime2.d $]:
 </p>
 [$code|highlight|
-[:	void addGizmos(int numPorts, bool isSpinnable, int numGizmos)
+[:void addGizmos(int numPorts, bool isSpinnable, int numGizmos)
+{
+	// Dispatch to correct version of addGizmosTo.
+	// Effectively converts a runtime value to compile-time.
+
+	// A 'foreach' over a TypeTuple is unrolled at *compile time*
+	foreach(np; TypeTuple!(1, 2, 3, 5, 10))
+	if(numPorts == np)
 	{
-		// Dispatch to correct version of addGizmosTo.
-		// Effectively converts a runtime value to compile-time.
-+		
-+		string dispatch(int[] numPortsArray)
-+		{
-+			auto str = "";
-+			foreach(numPorts; numPortsArray)
-+			{
-+				auto numPortsStr = to!string(numPorts);
-+				str ~= `
-+					if(numPorts == `~numPortsStr~`)
-+					{
-+						if(isSpinnable)
-+							addGizmosTo!(`~numPortsStr~`, true )(numGizmos);
-+						else
-+							addGizmosTo!(`~numPortsStr~`, false)(numGizmos);
-+					}
-+					else 
-+				`;
-+			}
-+			
-+			str ~=
-+				`throw new Exception(
-+					to!string(numPorts)~"-port Gizmo not supported."
-+				);`;
-+			
-+			return str;
-+		}
-+		
-+		mixin(dispatch( [1, 2, 3, 5, 10] ));
-	}:]
-$]
+		if(isSpinnable)
+			addGizmosTo!(np, true)(numGizmos);
+		else
+			addGizmosTo!(np, false)(numGizmos);
 
-<p>
-If you wish, you can see the generated code by simply outputting
-the result of [$code|inline|dispatch$]:
-</p>
+		return;
+	}
 
-<p class="figure-title">
-From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/snippet_outputGeneratedCode.d | snippet_outputGeneratedCode.d $]:
-</p>
-[$code|highlight|
-[:// In the UltraGiz.addGizmos() function of
-// 'ex6_meta_flex3_runtimeToCompileTime2.d',
-// see the generated code by replacing this:
-
-mixin(dispatch( [1, 2, 3, 5, 10] ));
-
-// With this:
-
-immutable code = dispatch( [1, 2, 3, 5, 10] );
-pragma(msg, "code:\n"~code); // Displayed at compile-time
-mixin(code);
-:]
+	throw new Exception(to!string(numPorts)~"-port Gizmo not supported.");
+}:]
 $]
 
 
@@ -2163,8 +2045,8 @@ a dynamic version that uses runtime options instead of compile-time options.
 
 <p>
 This is easier and more flexible than the previous method. In fact, method #1,
-compile-time function execution, is probably the only method that's easier than
-this, but this one is more powerful and supported by more languages.
+compile-time function execution, is probably the only method easier than
+this, but this is more powerful and supported by more languages.
 So this is a pretty good option.
 </p>
 
@@ -2181,10 +2063,10 @@ To do this, we'll use the same metaprogramming Gizmo we've been using for
 all the other methods in this section. But we'll also add a
 DynamicGizmo which is identical to the original Gizmo in
 [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex1_original.d | ex1_original.d $],
-just with a different name. Then, the
-UltraGiz will look like this (as usual, changes from
-[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]
-are highlighted):
+just with a different name. The [$code|inline|main()$] function is trivially
+similar to method #3 above, so I won't show it here. Check the
+[$link|http://github.com/Abscissa/efficientAndFlexible|online code listings$]
+for this article if you're interested.
 </p>
 
 <p class="figure-title">
@@ -2210,17 +2092,7 @@ From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_met
 	int numTimesUsedSpinny;
 	int numTimesUsedTwoPort;
 
-	void useGizmo(T)(ref T gizmo)
-	{
-		gizmo.doStuff();
-		gizmo.spin();
-		
-		if(gizmo.isSpinnable)
-			numTimesUsedSpinny++;
-		
-		if(gizmo.numPorts == 2)
-			numTimesUsedTwoPort++;
-	}
+	[Same useGizmo() as before, omitted for brevity]
 		
 +	void run(int bigPort, int extrasNumPorts, bool extrasIsSpinnable)
 	{
@@ -2258,43 +2130,6 @@ From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_met
 		
 		writeln(stopWatch.peek.msecs, "ms");
 	}
-}
-
-+void main(string[] args)
-{
-+	// Number of ports on each of the many-port Gizmos.
-+	// Normally 5
-+	int bigPort;
-+	
-+	// 8,000 extra Gizmos will be created with
-+	// this many ports and this spinnability.
-+	// Normally 2-port spinnable
-+	int  extrasNumPorts;
-+	bool extrasIsSpinnable;
-+	
-+	try
-+	{
-+		bigPort           = to!int (args[1]);
-+		extrasNumPorts    = to!int (args[2]);
-+		extrasIsSpinnable = to!bool(args[3]);
-+	}
-+	catch(Throwable e)
-+	{
-+		writeln("Usage:");
-+		writeln("  ex6_meta_flex4_dynamicFallback1 "~
-+			"{bigPort} {extrasNumPorts} {extrasIsSpinnable}");
-+		writeln("Example: ex6_meta_flex4_dynamicFallback1 5 2 true");
-+		return;
-+	}
-+	
-	UltraGiz ultra;
-+	ultra.run(bigPort, extrasNumPorts, extrasIsSpinnable);
-	
-	// Compile time error: A portless Gizmo is useless!
-+	//auto g1 = Gizmo!(0, true);
-+	
-+	// Runtime error: A portless Gizmo is useless!
-+	//auto g2 = DynamicGizmo(0, true);
 }:]
 $]
 
@@ -2306,7 +2141,7 @@ Not a bad compromise.
 </p>
 
 <p>
-As you can see in the full code listing for 
+As you can see if you look at the full online code listing for 
 [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex4_dynamicFallback1.d | ex6_meta_flex4_dynamicFallback1.d $],
 I opted to make a completely separate
 definition for the dynamic version of Gizmo; that is, the DynamicGizmo.
@@ -2360,49 +2195,22 @@ to clean up all those repetitive [$code|inline|foreach$] statements in
 From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex6_meta_flex4_dynamicFallback2.d | ex6_meta_flex4_dynamicFallback2.d $]:
 </p>
 [$code|highlight|
-[:	void run(int bigPort, int extrasNumPorts, bool extrasIsSpinnable)
-	{
-		StopWatch stopWatch;
-		stopWatch.start();
-
-		// Create gizmos
-		gizmos!(1, false).length = 10_000;
-		gizmos!(1, true ).length = 10_000;
-		gizmos!(2, false).length = 10_000;
-		
-		// Use the commandline parameters extrasNumPorts and extrasIsSpinnable
-		// so 8,000 more of these will be made down below as dynamic gizmos.
-		gizmos!(2, true ).length = 2_000;
-		
-		gizmos!(DynamicGizmo).length = 18_000;
-		foreach(i;       0..5_000)
-			gizmos!(DynamicGizmo)[i] = DynamicGizmo(bigPort, false);
-			
-		foreach(i;  5_000..10_000)
-			gizmos!(DynamicGizmo)[i] = DynamicGizmo(bigPort, true);
-			
-		foreach(i; 10_000..18_000)
-			gizmos!(DynamicGizmo)[i] = DynamicGizmo(extrasNumPorts, extrasIsSpinnable);
-		
-		// Use gizmos
-		foreach(i; 0..10_000)
-		{
-+			// Think of this as an array of types:
-+			alias TypeTuple!(
-+				Gizmo!(1, false),
-+				Gizmo!(1, true ),
-+				Gizmo!(2, false),
-+				Gizmo!(2, true ),
-+				DynamicGizmo,
-+			) AllGizmoTypes;
-+			
-+			foreach(T; AllGizmoTypes)
-+			foreach(ref gizmo; gizmos!T)
-+				useGizmo(gizmo);
-		}
-		
-		writeln(stopWatch.peek.msecs, "ms");
-	}:]
+[:// Use gizmos
+foreach(i; 0..10_000)
+{
++	// Think of this as an array of types:
++	alias TypeTuple!(
++		Gizmo!(1, false),
++		Gizmo!(1, true ),
++		Gizmo!(2, false),
++		Gizmo!(2, true ),
++		DynamicGizmo,
++	) AllGizmoTypes;
++	
++	foreach(T; AllGizmoTypes)
++	foreach(ref gizmo; gizmos!T)
++		useGizmo(gizmo);
+}:]
 $]
 
 
@@ -2414,10 +2222,10 @@ Don't worry, I'm not really going to introduce an elephant into the story...
 </p>
 
 <p>
-We've already seen various ways of configuring a compile-time option
+We've already seen various methods of configuring a compile-time option
 at runtime. But that was limited to <em>creating</em> a Gizmo. Once created,
 a Gizmo was stuck with those settings. So what if the number of ports and
-spinnablity of an existing Gizmo needs to change? If only a few Gizmos
+spinnability of an existing Gizmo needs to change? If only a few Gizmos
 need to be able to change, we can just make those few out of the
 [$code|inline|DynamicGizmo$] from earlier with only trivial modifications.
 But suppose all the Gizmos need to be changeable: Now how do we change the
@@ -2425,9 +2233,9 @@ settings of an existing Gizmo without giving up the metaprogramming benefits?
 </p>
 
 <p>
-In our original example, it would have been trivial to modify the Gizmo code
-so you could change a Gizmo's number of ports and spinnablity after it was
-created. They were already runtime values.
+In our original example way back in part 1, it would have been trivial to
+modify the Gizmo code so you could change a Gizmo's number of ports and
+spinnability after it was created. They were already runtime values.
 But our metaprogramming examples have taken advantage of the fact that such
 values were fixed when a Gizmo is created. In fact, that's the fundamental
 key of the metaprogramming versions: "Turn your runtime options into
@@ -2496,143 +2304,69 @@ be combined.
 </p>
 
 <p>
-I've highlighted the changes from the original metaprogramming version,
-[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $]:
+This time around, the Gizmo is exactly the same as the original
+metaprogramming version from part 1,
+[$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex4_metaprogramming.d | ex4_metaprogramming.d $],
+but with one member function added:
 </p>
 
 <p class="figure-title">
 From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex7_meta_runtimeConversion.d | ex7_meta_runtimeConversion.d $]:
 </p>
 [$code|highlight|
-[:struct Gizmo(int _numPorts, bool _isSpinnable)
+[:// This is a member of the Gizmo type:
+TOut convertTo(TOut)()
 {
-	// So other generic code can determine the
-	// number of ports and spinnability:
-	static immutable numPorts    = _numPorts;
-	static immutable isSpinnable = _isSpinnable;
+	TOut newGizmo;
+	
+	static if(isSpinnable && TOut.isSpinnable)
+		newGizmo.spinCount = this.spinCount;
+	
+	int portsToCopy = min(newGizmo.numPorts, this.numPorts);
+	newGizmo.ports[0..portsToCopy] = this.ports[0..portsToCopy];
+	
+	// If there were any other data, we'd copy it to the newGizmo here
+	
+	return newGizmo;
+}:]
+$]
 
-	static if(numPorts < 1)
-		static assert(false, "A portless Gizmo is useless!");
+<p>
+The UltraGiz is also nearly identical to the original metaprogramming example.
+Except now we swap some Gizmos around when using them in UltraGiz's
+[$code|inline|run()$]:
+</p>
 
-	private OutputPort[numPorts] ports;
-	void doStuff()
-	{
-		static if(numPorts == 1)
-			ports[0].zap();
-		else static if(numPorts == 2)
-		{
-			ports[0].zap();
-			ports[1].zap();
-		}
-		else
-		{
-			foreach(port; ports)
-				port.zap();
-		}
-	}
-
-	static if(isSpinnable)
-		int spinCount;
-
-	void spin()
-	{
-		static if(isSpinnable)
-			spinCount++; // Spinning! Wheeee!
-	}
+<p class="figure-title">
+From [$link| http://github.com/Abscissa/efficientAndFlexible/blob/master/ex7_meta_runtimeConversion.d | ex7_meta_runtimeConversion.d $]:
+</p>
+[$code|highlight|
+[:// Use gizmos
+foreach(i; 0..10_000)
+{
++	// Modify some gimos:
++	// Save a 1-port non-spinny
++	auto old1PortNoSpin = gizmos!(1, false)[i];
++			
++	// Convert a 2-port spinny to 1-port non-spinny
++	gizmos!(1, false)[i] =
++		gizmos!(2, true)[i].convertTo!( Gizmo!(1, false) )();
 +
-+	TOut convertTo(TOut)()
-+	{
-+		TOut newGizmo;
-+		
-+		static if(isSpinnable && TOut.isSpinnable)
-+			newGizmo.spinCount = this.spinCount;
-+		
-+		int portsToCopy = min(newGizmo.numPorts, this.numPorts);
-+		newGizmo.ports[0..portsToCopy] = this.ports[0..portsToCopy];
-+		
-+		// If there were any other data, we'd copy it to the newGizmo here
-+		
-+		return newGizmo;
-+	}
-}
-
-struct OutputPort
-{
-	int numZaps;
-	void zap()
-	{
-		numZaps++;
-	}
-}
-
-struct UltraGiz
-{
-	template gizmos(int numPorts, bool isSpinnable)
-	{
-		Gizmo!(numPorts, isSpinnable)[] gizmos;
-	}
-
-	int numTimesUsedSpinny;
-	int numTimesUsedTwoPort;
-
-	void useGizmo(T)(ref T gizmo)
-	{
-		gizmo.doStuff();
-		gizmo.spin();
-		
-		if(gizmo.isSpinnable)
-			numTimesUsedSpinny++;
-		
-		if(gizmo.numPorts == 2)
-			numTimesUsedTwoPort++;
-	}
-
-	void run()
-	{
-		StopWatch stopWatch;
-		stopWatch.start();
-
-		// Create gizmos
-		gizmos!(1, false).length = 10_000;
-		gizmos!(1, true ).length = 10_000;
-		gizmos!(2, false).length = 10_000;
-		gizmos!(2, true ).length = 10_000;
-		gizmos!(5, false).length =  5_000;
-		gizmos!(5, true ).length =  5_000;
-		
-		// Use gizmos
-		foreach(i; 0..10_000)
-		{
-+			// Modify some gimos:
-+			// Save a 1-port non-spinny
-+			auto old1PortNoSpin = gizmos!(1, false)[i];
++	// Convert a 5-port spinny to 2-port spinny
++	gizmos!(2, true)[i] =
++		gizmos!(5, true)[i%2].convertTo!( Gizmo!(2, true) )();
 +			
-+			// Convert a 2-port spinny to 1-port non-spinny
-+			gizmos!(1, false)[i] =
-+				gizmos!(2, true)[i].convertTo!( Gizmo!(1, false) )();
-+
-+			// Convert a 5-port spinny to 2-port spinny
-+			gizmos!(2, true)[i] =
-+				gizmos!(5, true)[i%2].convertTo!( Gizmo!(2, true) )();
++	// Convert the old 1-port non-spinny to 5-port spinny
++	gizmos!(5, true)[i%2] =
++		old1PortNoSpin.convertTo!( Gizmo!(5, true) )();
 +			
-+			// Convert the old 1-port non-spinny to 5-port spinny
-+			gizmos!(5, true)[i%2] =
-+				old1PortNoSpin.convertTo!( Gizmo!(5, true) )();
-+			
-+			// Use gizmos as usual
-			foreach(ref gizmo; gizmos!(1, false)) useGizmo(gizmo);
-			foreach(ref gizmo; gizmos!(1, true )) useGizmo(gizmo);
-			foreach(ref gizmo; gizmos!(2, false)) useGizmo(gizmo);
-			foreach(ref gizmo; gizmos!(2, true )) useGizmo(gizmo);
-			foreach(ref gizmo; gizmos!(5, false)) useGizmo(gizmo);
-			foreach(ref gizmo; gizmos!(5, true )) useGizmo(gizmo);
-		}
-		
-		writeln(stopWatch.peek.msecs, "ms");
-
-		assert(numTimesUsedSpinny  == 25_000 * 10_000);
-		assert(numTimesUsedTwoPort == 20_000 * 10_000);
-	}
++	// Use gizmos as usual
+	foreach(ref gizmo; gizmos!(1, false)) useGizmo(gizmo);
+	foreach(ref gizmo; gizmos!(1, true )) useGizmo(gizmo);
+	foreach(ref gizmo; gizmos!(2, false)) useGizmo(gizmo);
+	foreach(ref gizmo; gizmos!(2, true )) useGizmo(gizmo);
+	foreach(ref gizmo; gizmos!(5, false)) useGizmo(gizmo);
+	foreach(ref gizmo; gizmos!(5, true )) useGizmo(gizmo);
 }:]
 $]
 
@@ -2696,21 +2430,9 @@ struct AnyGizmo
 	{
 		static if(is(T==Gizmo!(1, false)))
 			gizmoUnion.gizmo1NS = value;
-
-		else static if(is(T==Gizmo!(1, true)))
-			gizmoUnion.gizmo1S = value;
-
-		else static if(is(T==Gizmo!(2, false)))
-			gizmoUnion.gizmo2NS = value;
-
 		else static if(is(T==Gizmo!(2, true)))
 			gizmoUnion.gizmo2S = value;
-
-		else static if(is(T==Gizmo!(5, false)))
-			gizmoUnion.gizmo5NS = value;
-
-		else static if(is(T==Gizmo!(5, true)))
-			gizmoUnion.gizmo5S = value;
+		[etc...]
 		
 		currentType = typeid(T);
 	}
@@ -2731,20 +2453,10 @@ void main()
 	if( anyGizmo.currentType == typeid(Gizmo!(1, false)) )
 		useGizmo( anyGizmo.gizmoUnion.gizmo1NS );
 		
-	else if( anyGizmo.currentType == typeid(Gizmo!(1, true)) )
-		useGizmo( anyGizmo.gizmoUnion.gizmo1S );
-		
-	else if( anyGizmo.currentType == typeid(Gizmo!(2, false)) )
-		useGizmo( anyGizmo.gizmoUnion.gizmo2NS );
-		
 	else if( anyGizmo.currentType == typeid(Gizmo!(2, true)) )
 		useGizmo( anyGizmo.gizmoUnion.gizmo2S );
 		
-	else if( anyGizmo.currentType == typeid(Gizmo!(5, false)) )
-		useGizmo( anyGizmo.gizmoUnion.gizmo5NS );
-		
-	else if( anyGizmo.currentType == typeid(Gizmo!(5, true)) )
-		useGizmo( anyGizmo.gizmoUnion.gizmo5S );
+	[etc...]
 
 	else
 		throw new Exception("Unexpected type");
@@ -2755,7 +2467,28 @@ $]
 As you see in [$code|inline|main()$] above, before you use an AnyGizmo,
 you first check the type via [$code|inline|currentType$]
 and then use the appropriate member of [$code|inline|gizmoUnion$].
-This does have a few gotchas, though:
+</p>
+
+<p>
+Alternatively, D's standard library offers an
+[$link|http://dlang.org/phobos/std_variant.html|Algebraic$] type,
+which is the same thing, but safer and easier:
+</p>
+
+[$code|highlight|
+[:import std.variant;
+alias Algebraic!(
+	Gizmo!(1, false),
+	Gizmo!(1, true ),
+	Gizmo!(2, false),
+	Gizmo!(2, true ),
+	Gizmo!(5, false),
+	Gizmo!(5, true ),
+) AnyGizmo;:]
+$]
+
+<p>
+Either way, this approach does have a few gotchas:
 </p>
 
 <p>
@@ -2835,15 +2568,15 @@ can be specially-tailored to the features that Gizmo is supposed to
 support. So the Gizmos don't have to spend any extra processing time dealing
 with being flexible (for instance, by checking their own
 [$code|inline|isSpinnable$] variables to see whether or not to actually spin).
-Essentially, we have a form of polymorphism.
+Essentially, we have a cheaper form of polymorphism.
 In fact, if a DynamicGizmo isn't included in the AnyGizmo, then there can
 still be a space savings over DynamicGizmo because variables like
 [$code|inline|isSpinnable$] still won't need to exist at runtime at all.
 </p>
 
 <p>
-Second, if we want to change multiple settings on a Gizmo, we only need
-to actually modify one value: the value of [$code|inline|currentType$].
+Second, if we want to change multiple settings on a Gizmo at the same time,
+we only need to actually modify one value: [$code|inline|currentType$].
 </p>
 
 

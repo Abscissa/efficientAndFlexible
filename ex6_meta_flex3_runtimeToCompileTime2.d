@@ -1,7 +1,7 @@
 // Written in the D programming language
 // by Nick Sabalausky
 //
-// Tested on DMD 2.053
+// Requires DMD 2.056 or newer
 //
 // Gizmo Example
 // Version: Metaprogramming - Flexibility Method #3 -
@@ -10,6 +10,7 @@
 import std.conv;
 import std.datetime;
 import std.stdio;
+import std.typetuple;
 
 struct Gizmo(int _numPorts, bool _isSpinnable)
 {
@@ -90,33 +91,19 @@ struct UltraGiz
 		// Dispatch to correct version of addGizmosTo.
 		// Effectively converts a runtime value to compile-time.
 		
-		string dispatch(int[] numPortsArray)
+		// A 'foreach' over a TypeTuple is unrolled at *compile time*
+		foreach(np; TypeTuple!(1, 2, 3, 5, 10))
+		if(numPorts == np)
 		{
-			auto str = "";
-			foreach(numPorts; numPortsArray)
-			{
-				auto numPortsStr = to!string(numPorts);
-				str ~= `
-					if(numPorts == `~numPortsStr~`)
-					{
-						if(isSpinnable)
-							addGizmosTo!(`~numPortsStr~`, true )(numGizmos);
-						else
-							addGizmosTo!(`~numPortsStr~`, false)(numGizmos);
-					}
-					else 
-				`;
-			}
-			
-			str ~=
-				`throw new Exception(
-					to!string(numPorts)~"-port Gizmo not supported."
-				);`;
-			
-			return str;
+			if(isSpinnable)
+				addGizmosTo!(np, true)(numGizmos);
+			else
+				addGizmosTo!(np, false)(numGizmos);
+
+			return;
 		}
-		
-		mixin(dispatch( [1, 2, 3, 5, 10] ));
+
+		throw new Exception(to!string(numPorts)~"-port Gizmo not supported.");
 	}
 		
 	void run(int bigPort)(int extrasNumPorts, bool extrasIsSpinnable)
